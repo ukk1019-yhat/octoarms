@@ -711,13 +711,19 @@
             .brand-sub { font-size: 0.58rem; }
             .top-bar .font-mono { display: none; }
             .pose-bar {
-                gap: 3px;
-                padding: 5px;
-                max-width: calc(100vw - 28px);
+                left: 12px;
+                right: 12px;
+                width: auto;
+                max-width: none;
+                transform: none;
+                justify-content: flex-start;
+                gap: 4px;
+                padding: 6px;
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: none;
-                bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+                bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+                border-radius: 12px;
             }
             .pose-bar::-webkit-scrollbar { display: none; }
             .pose-btn { padding: 7px 12px; font-size: 0.62rem; white-space: nowrap; min-height: 36px; flex-shrink: 0; }
@@ -778,9 +784,9 @@
             .browser-close { top: calc(18px + env(safe-area-inset-top, 0px)); }
             .browser-toggle { display: none !important; }
             .mobile-toggle-browser { display: flex; }
-            .mobile-toggle-left { bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+            .mobile-toggle-left { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
             .mobile-toggle-right { top: calc(60px + env(safe-area-inset-top, 0px)); }
-            .mobile-dpad { bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
+            .mobile-dpad { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
             #anglePanel {
                 min-width: 0 !important;
                 width: calc(100vw - 24px) !important;
@@ -811,7 +817,7 @@
             .right-panel { max-height: 68vh; }
             .left-panel { max-height: 60vh; }
             .mobile-dpad { transform: scale(0.82); transform-origin: bottom right; }
-            .mobile-dpad { bottom: calc(68px + env(safe-area-inset-bottom, 0px)); right: 8px; }
+            .mobile-dpad { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); right: 8px; }
         }
     </style>
 </head>
