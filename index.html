@@ -1973,63 +1973,48 @@ document.getElementById('speedSlider').addEventListener('input', (e) => {
     document.getElementById('speedLabel').textContent = walkSpeed.toFixed(1);
 });
 
-// Mobile D-pad touch controls
+// Mobile D-pad controls (pointer + touch — whichever the device fires)
 const dpad = document.getElementById('mobileDpad');
+const dpadHeld = { up: false, down: false, left: false, right: false };
+
+function dpadPress(e, val) {
+    const btn = e.target.closest ? e.target.closest('.dpad-btn') : null;
+    if (!btn) return;
+    const dir = btn.dataset.di;
+    if (!dir || dir === 'none') return;
+    if (currentPose !== 'walk') {
+        const walkBtn = document.querySelector('[data-pose="walk"]');
+        if (walkBtn) walkBtn.click();
+    }
+    if (dir === 'arrowup') { keys.arrowup = val; dpadHeld.up = val; }
+    else if (dir === 'arrowdown') { keys.arrowdown = val; dpadHeld.down = val; }
+    else if (dir === 'arrowleft') { keys.arrowleft = val; dpadHeld.left = val; }
+    else if (dir === 'arrowright') { keys.arrowright = val; dpadHeld.right = val; }
+}
+
+function dpadReleaseAll() {
+    keys.arrowup = keys.arrowdown = keys.arrowleft = keys.arrowright = false;
+    dpadHeld.up = dpadHeld.down = dpadHeld.left = dpadHeld.right = false;
+}
+
+// Pointer events (modern browsers)
 dpad.addEventListener('pointerdown', (e) => {
-    if (e.target.classList.contains('dpad-btn')) {
-        const dir = e.target.dataset.di;
-        if (dir !== 'none' && dir) {
-            if (currentPose !== 'walk') {
-                document.querySelector('[data-pose="walk"]').click();
-            }
-            keys[dir] = true;
-        }
-        e.target.releasePointerCapture(e.pointerId);
-    }
+    dpadPress(e, true);
+    try { e.target.releasePointerCapture(e.pointerId); } catch (err) {}
 });
-dpad.addEventListener('pointerup', (e) => {
-    if (e.target.classList.contains('dpad-btn')) {
-        const dir = e.target.dataset.di;
-        if (dir !== 'none' && dir) keys[dir] = false;
-    }
-});
-dpad.addEventListener('pointercancel', (e) => {
-    if (e.target.classList.contains('dpad-btn')) {
-        const dir = e.target.dataset.di;
-        if (dir !== 'none' && dir) keys[dir] = false;
-    }
-});
-dpad.addEventListener('pointerleave', (e) => {
-    if (e.target.classList.contains('dpad-btn')) {
-        const dir = e.target.dataset.di;
-        if (dir !== 'none' && dir) keys[dir] = false;
-    }
-});
-// Prevent the pointer events from rotating the camera
+dpad.addEventListener('pointerup', (e) => dpadPress(e, false));
+dpad.addEventListener('pointercancel', (e) => dpadPress(e, false));
+dpad.addEventListener('pointerleave', dpadReleaseAll);
+// Prevent dpad touches from rotating the camera
 dpad.addEventListener('pointerdown', (e) => e.stopPropagation(), true);
 
-// Fallback for browsers without Pointer Events (older webviews)
-if (!window.PointerEvent) {
-    const setKey = (t, val) => {
-        const dir = t.target.dataset.di;
-        if (dir !== 'none' && dir) {
-            if (currentPose !== 'walk') document.querySelector('[data-pose="walk"]').click();
-            keys[dir] = val;
-        }
-    };
-    dpad.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        setKey(e.touches[0] || e.target, true);
-    }, { passive: false });
-    dpad.addEventListener('touchend', (e) => {
-        const t = { target: e.target };
-        setKey(t, false);
-    });
-    dpad.addEventListener('touchcancel', (e) => {
-        const t = { target: e.target };
-        setKey(t, false);
-    });
-}
+// Touch events — always attached as a fallback (harmless if both fire)
+dpad.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    dpadPress(e, true);
+}, { passive: false });
+dpad.addEventListener('touchend', (e) => { e.preventDefault(); dpadPress(e, false); }, { passive: false });
+dpad.addEventListener('touchcancel', (e) => { e.preventDefault(); dpadPress(e, false); }, { passive: false });
 
 // ============================================
 // COMPONENT SELECTION & DETACH
@@ -2804,10 +2789,10 @@ function animate() {
         robotGroup.position.y += (0.7 - robotGroup.position.y) * 0.03;
         
         let mx = 0, mz = 0;
-        if (keys.w || keys.arrowup) mz -= 1;
-        if (keys.s || keys.arrowdown) mz += 1;
-        if (keys.a || keys.arrowleft) mx -= 1;
-        if (keys.d || keys.arrowright) mx += 1;
+        if (keys.w || keys.arrowup || dpadHeld.up) mz -= 1;
+        if (keys.s || keys.arrowdown || dpadHeld.down) mz += 1;
+        if (keys.a || keys.arrowleft || dpadHeld.left) mx -= 1;
+        if (keys.d || keys.arrowright || dpadHeld.right) mx += 1;
         
         if (mx !== 0 || mz !== 0) {
             const len = Math.sqrt(mx * mx + mz * mz);
