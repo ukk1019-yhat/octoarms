@@ -575,22 +575,187 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
         
+        /* ---- Mobile D-Pad ---- */
+        .mobile-dpad {
+            display: none;
+            position: fixed;
+            bottom: 22px;
+            right: 16px;
+            z-index: 20;
+            grid-template-columns: repeat(3, 44px);
+            grid-template-rows: repeat(3, 44px);
+            gap: 4px;
+            opacity: 0.85;
+        }
+        .dpad-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            border: 1.5px solid rgba(200,200,200,0.5);
+            background: rgba(245,244,242,0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: var(--text-2);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+        }
+        .dpad-btn:active { background: var(--accent); color: #fff; transform: scale(0.92); }
+        .dpad-up { grid-column: 2; grid-row: 1; }
+        .dpad-left { grid-column: 1; grid-row: 2; }
+        .dpad-center { grid-column: 2; grid-row: 2; background: rgba(245,244,242,0.5); }
+        .dpad-right { grid-column: 3; grid-row: 2; }
+        .dpad-down { grid-column: 2; grid-row: 3; }
+
+        /* Show D-pad only on touch / small screens */
+        @media (hover: none) and (pointer: coarse) {
+            .mobile-dpad { display: grid; }
+        }
+        @media (max-width: 640px) {
+            .mobile-dpad { bottom: 74px; right: 10px; }
+        }
+        @media (max-width: 380px) {
+            .mobile-dpad { transform: scale(0.9); transform-origin: bottom right; }
+        }
+
+        /* ---- Mobile Toggle Buttons ---- */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            z-index: 30;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(245,244,242,0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1.5px solid rgba(200,200,200,0.4);
+            color: var(--text-3);
+            font-size: 1rem;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+        }
+        .mobile-toggle:active { transform: scale(0.93); }
+        .mobile-toggle.open { border-color: var(--accent); color: var(--accent); background: rgba(200,149,108,0.1); }
+        .mobile-toggle-right { top: 20px; right: 12px; }
+        .mobile-toggle-left { bottom: 88px; left: 12px; }
+        .mobile-toggle-browser { top: 50%; left: 8px; transform: translateY(-50%); writing-mode: vertical-rl; text-orientation: mixed; padding: 10px 5px; font-size: 0.55rem; font-weight: 600; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.1em; }
+
+        /* ---- Mobile Overlay ---- */
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.15);
+            z-index: 22;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .mobile-overlay.visible { opacity: 1; }
+
         /* ---- Responsive ---- */
         @media (max-width: 1100px) {
             .right-panel { width: 260px; }
             .brand-title { font-size: 2rem; }
         }
         @media (max-width: 900px) {
-            .right-panel { display: none; }
-            .left-panel { width: 200px; }
+            .right-panel {
+                position: fixed;
+                top: auto;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-height: 55vh;
+                transform: translateY(100%);
+                transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                overflow-y: auto;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 16px;
+                border-radius: 16px 16px 0 0;
+                background: rgba(245,244,242,0.97);
+                backdrop-filter: blur(24px);
+                -webkit-backdrop-filter: blur(24px);
+                z-index: 25;
+            }
+            .right-panel.open { transform: translateY(0); }
+            .right-panel .panel-card { flex: 1 1 45%; min-width: 160px; }
+            .browser-toggle { display: none !important; }
+            .mobile-toggle { display: flex; }
+            .mobile-overlay { display: block; }
+            .left-panel { width: 100%; }
+            .controls-hint { display: none; }
         }
         @media (max-width: 640px) {
-            .top-bar { padding: 14px 18px; }
-            .brand-title { font-size: 1.5rem; }
-            .left-panel { display: none; }
-            .pose-bar { gap: 2px; padding: 4px; }
-            .pose-btn { padding: 6px 10px; font-size: 0.6rem; }
-            .controls-hint { display: none; }
+            .top-bar { padding: 12px 14px; }
+            .brand-title { font-size: 1.6rem; }
+            .brand-sub { font-size: 0.58rem; }
+            .pose-bar {
+                gap: 3px;
+                padding: 5px;
+                max-width: calc(100vw - 28px);
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .pose-bar::-webkit-scrollbar { display: none; }
+            .pose-btn { padding: 7px 12px; font-size: 0.62rem; white-space: nowrap; min-height: 36px; }
+            .left-panel { animation: none !important; opacity: 1 !important; }
+            .right-panel, .right-panel * { animation: none !important; opacity: 1 !important; }
+            .left-panel {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-height: 50vh;
+                transform: translateY(100%);
+                transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                overflow-y: auto;
+                z-index: 25;
+                padding: 0 8px;
+                pointer-events: none;
+            }
+            .left-panel.open { transform: translateY(0); pointer-events: auto; }
+            .left-panel .panel-card {
+                background: rgba(245,244,242,0.97);
+                backdrop-filter: blur(24px);
+                border-radius: 16px 16px 0 0;
+                border: none;
+                border-top: 1px solid rgba(200,200,200,0.4);
+            }
+            .right-panel .panel-card { flex: 1 1 100%; min-width: 0; }
+            .browser-panel { width: 100%; }
+            .browser-toggle { display: none !important; }
+            .mobile-toggle-browser { display: flex; }
+            .mobile-toggle-left { bottom: 88px; }
+            .mobile-toggle-right { top: 60px; }
+            #anglePanel {
+                min-width: 0 !important;
+                width: calc(100vw - 24px) !important;
+                max-width: 100vw !important;
+                font-size: 0.5rem;
+                padding: 10px 12px !important;
+            }
+            #compPanel {
+                width: calc(100vw - 24px) !important;
+                max-width: 100vw !important;
+                border-radius: 12px !important;
+                padding: 16px !important;
+            }
+            #voiceStatus { max-width: calc(100vw - 32px); }
+        }
+        @media (max-width: 380px) {
+            .brand-title { font-size: 1.3rem; }
+            .brand-sub { font-size: 0.5rem; }
+            .pose-btn { padding: 6px 8px; font-size: 0.58rem; }
+            .mobile-toggle { width: 36px; height: 36px; font-size: 0.85rem; }
         }
     </style>
 </head>
@@ -623,8 +788,14 @@
         </div>
     </div>
     
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
     <!-- Component Browser Toggle -->
     <div class="browser-toggle" id="browserToggle">BROWSE</div>
+    <button class="mobile-toggle mobile-toggle-browser" id="mobileBrowserToggle">≡</button>
+    <button class="mobile-toggle mobile-toggle-right" id="mobileRightToggle">⚙</button>
+    <button class="mobile-toggle mobile-toggle-left" id="mobileLeftToggle">ℹ</button>
 
     <!-- Component Browser Panel -->
     <div class="browser-panel" id="browserPanel">
@@ -811,6 +982,15 @@
         <span id="voiceText">Listening...</span>
     </div>
 
+    <!-- Mobile D-Pad -->
+    <div class="mobile-dpad" id="mobileDpad">
+        <button class="dpad-btn dpad-up" data-di="arrowup">▲</button>
+        <button class="dpad-btn dpad-left" data-di="arrowleft">◀</button>
+        <button class="dpad-btn dpad-center" data-di="none">●</button>
+        <button class="dpad-btn dpad-right" data-di="arrowright">▶</button>
+        <button class="dpad-btn dpad-down" data-di="arrowdown">▼</button>
+    </div>
+
     <!-- Bottom Pose Bar -->
     <div class="pose-bar anim-fade-up d6">
         <button class="pose-btn active" data-pose="idle">Idle</button>
@@ -869,7 +1049,8 @@ scene.background = new THREE.Color(0xe8e8e8);
 scene.fog = new THREE.Fog(0xe8e8e8, 18, 35);
 
 const camera = new THREE.PerspectiveCamera(32, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(6, 5.5, 8);
+const isMobile = window.innerWidth <= 900;
+camera.position.set(6, 5.5, isMobile ? 11 : 8);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -884,8 +1065,8 @@ container.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.04;
-controls.minDistance = 3;
-controls.maxDistance = 18;
+controls.minDistance = isMobile ? 4 : 3;
+controls.maxDistance = isMobile ? 22 : 18;
 controls.maxPolarAngle = Math.PI / 2.05;
 controls.target.set(0, 0.6, 0);
 controls.update();
@@ -1730,6 +1911,36 @@ document.getElementById('speedSlider').addEventListener('input', (e) => {
     document.getElementById('speedLabel').textContent = walkSpeed.toFixed(1);
 });
 
+// Mobile D-pad touch controls
+const dpad = document.getElementById('mobileDpad');
+dpad.addEventListener('pointerdown', (e) => {
+    if (e.target.classList.contains('dpad-btn')) {
+        const dir = e.target.dataset.di;
+        if (dir !== 'none' && dir) keys[dir] = true;
+        e.target.releasePointerCapture(e.pointerId);
+    }
+});
+dpad.addEventListener('pointerup', (e) => {
+    if (e.target.classList.contains('dpad-btn')) {
+        const dir = e.target.dataset.di;
+        if (dir !== 'none' && dir) keys[dir] = false;
+    }
+});
+dpad.addEventListener('pointercancel', (e) => {
+    if (e.target.classList.contains('dpad-btn')) {
+        const dir = e.target.dataset.di;
+        if (dir !== 'none' && dir) keys[dir] = false;
+    }
+});
+dpad.addEventListener('pointerleave', (e) => {
+    if (e.target.classList.contains('dpad-btn')) {
+        const dir = e.target.dataset.di;
+        if (dir !== 'none' && dir) keys[dir] = false;
+    }
+});
+// Prevent the pointer events from rotating the camera
+dpad.addEventListener('pointerdown', (e) => e.stopPropagation(), true);
+
 // ============================================
 // COMPONENT SELECTION & DETACH
 // ============================================
@@ -2121,10 +2332,15 @@ document.getElementById('browserBack').addEventListener('click', () => {
 });
 
 // Browser panel toggle
+const mobileBtns = document.querySelectorAll('.mobile-toggle:not(#mobileBrowserToggle)');
+function syncBrowserMobile() {
+    mobileBtns.forEach(b => { b.style.display = browserActive ? 'none' : ''; });
+}
 document.getElementById('browserToggle').addEventListener('click', () => {
     browserActive = !browserActive;
     document.getElementById('browserPanel').classList.toggle('open', browserActive);
     document.getElementById('browserToggle').classList.toggle('open', browserActive);
+    syncBrowserMobile();
     if (!browserActive) {
         clearBrowserHighlight();
         focusTarget = null;
@@ -2134,9 +2350,55 @@ document.getElementById('browserClose').addEventListener('click', () => {
     browserActive = false;
     document.getElementById('browserPanel').classList.remove('open');
     document.getElementById('browserToggle').classList.remove('open');
+    document.getElementById('mobileBrowserToggle').classList.remove('open');
+    syncBrowserMobile();
     clearBrowserHighlight();
     focusTarget = null;
 });
+
+// Mobile browser toggle
+document.getElementById('mobileBrowserToggle').addEventListener('click', () => {
+    document.getElementById('browserToggle').click();
+    document.getElementById('mobileBrowserToggle').classList.toggle('open', browserActive);
+});
+
+// Mobile right panel toggle
+const rightPanel = document.querySelector('.right-panel');
+const mobileOverlay = document.getElementById('mobileOverlay');
+const mobileRightToggle = document.getElementById('mobileRightToggle');
+const mobileLeftToggle = document.getElementById('mobileLeftToggle');
+const leftPanel = document.querySelector('.left-panel');
+const browserPanel = document.getElementById('browserPanel');
+
+function closeAllMobilePanels() {
+    rightPanel.classList.remove('open');
+    leftPanel.classList.remove('open');
+    mobileRightToggle.classList.remove('open');
+    mobileLeftToggle.classList.remove('open');
+    mobileOverlay.classList.remove('visible');
+}
+
+mobileRightToggle.addEventListener('click', () => {
+    const willOpen = !rightPanel.classList.contains('open');
+    closeAllMobilePanels();
+    if (willOpen) {
+        rightPanel.classList.add('open');
+        mobileRightToggle.classList.add('open');
+        mobileOverlay.classList.add('visible');
+    }
+});
+
+mobileLeftToggle.addEventListener('click', () => {
+    const willOpen = !leftPanel.classList.contains('open');
+    closeAllMobilePanels();
+    if (willOpen) {
+        leftPanel.classList.add('open');
+        mobileLeftToggle.classList.add('open');
+        mobileOverlay.classList.add('visible');
+    }
+});
+
+mobileOverlay.addEventListener('click', closeAllMobilePanels);
 
 // Build browser on load
 buildBrowserList();
@@ -2507,11 +2769,21 @@ function animate() {
 // ============================================
 // RESIZE
 // ============================================
-window.addEventListener('resize', () => {
+function handleResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-});
+}
+window.addEventListener('resize', handleResize);
+
+// Fix mobile 100vh issue (tools/browser bars)
+function fixViewport() {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', vh + 'px');
+    document.body.style.height = `${vh * 100}px`;
+}
+fixViewport();
+window.addEventListener('resize', fixViewport);
 
 // ============================================
 // LOADING
