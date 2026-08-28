@@ -1,0 +1,2528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCTOARMS — 8-DOF Modular Robotic Arm System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #e8e8e8;
+            --bg-warm: #e5e3df;
+            --surface: #f0eeea;
+            --surface-2: #f5f4f2;
+            --text: #1a1a1a;
+            --text-2: #4a4a4a;
+            --text-3: #8a8a8a;
+            --accent: #c8956c;
+            --accent-dim: #a67c52;
+            --border: #d0d0d0;
+            --border-light: #e0e0e0;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+        #canvas-container {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+        }
+        canvas { display: block; }
+        
+        /* ---- UI Layer ---- */
+        .ui-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .ui-layer > * { pointer-events: auto; }
+        
+        /* ---- Typography ---- */
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* ---- Top Bar ---- */
+        .top-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            padding: 20px 32px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .top-bar > * { pointer-events: auto; }
+        
+        .brand-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.6rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            color: var(--text);
+        }
+        .brand-sub {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-3);
+            margin-top: 6px;
+        }
+        
+        /* ---- Right Panel ---- */
+        .right-panel {
+            position: fixed;
+            top: 20px;
+            right: 28px;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 20;
+        }
+        
+        .panel-card {
+            background: rgba(245, 244, 242, 0.82);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            border: 1px solid rgba(200, 200, 200, 0.35);
+            border-radius: 14px;
+            padding: 16px 18px;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .panel-card:hover {
+            background: rgba(250, 249, 247, 0.92);
+            border-color: rgba(180, 180, 180, 0.5);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+        }
+        
+        .panel-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-3);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .panel-title::before {
+            content: '';
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+        
+        /* ---- Spec Grid ---- */
+        .spec-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 12px;
+        }
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+        .spec-label {
+            font-size: 0.68rem;
+            color: var(--text-3);
+            font-weight: 400;
+        }
+        .spec-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text);
+            font-weight: 600;
+        }
+        
+        /* ---- Feature List ---- */
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            font-size: 0.72rem;
+            color: var(--text-2);
+            padding: 3px 0 3px 14px;
+            position: relative;
+            line-height: 1.5;
+        }
+        .feature-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 9px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--accent);
+            opacity: 0.6;
+        }
+        
+        /* ---- End Effector Grid ---- */
+        .ee-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .ee-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 6px 4px;
+            border-radius: 8px;
+            transition: all 0.25s ease;
+            border: 1.5px solid transparent;
+        }
+        .ee-item:hover {
+            background: rgba(0,0,0,0.03);
+        }
+        .ee-item.active {
+            border-color: var(--accent);
+            background: rgba(200, 149, 108, 0.08);
+        }
+        .ee-icon {
+            width: 32px;
+            height: 32px;
+            margin: 0 auto 4px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .ee-icon::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 40%, rgba(200,149,108,0.15) 100%);
+        }
+        .ee-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: #aaa;
+        }
+        .ee-name {
+            font-size: 0.58rem;
+            color: var(--text-3);
+            font-weight: 500;
+            line-height: 1.2;
+        }
+        
+        /* ---- Mount Options ---- */
+        .mount-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .mount-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 6px 4px;
+            border-radius: 8px;
+            transition: all 0.25s ease;
+            border: 1.5px solid transparent;
+        }
+        .mount-item:hover {
+            background: rgba(0,0,0,0.03);
+        }
+        .mount-item.active {
+            border-color: var(--accent);
+            background: rgba(200, 149, 108, 0.08);
+        }
+        .mount-icon {
+            width: 40px;
+            height: 28px;
+            margin: 0 auto 4px;
+            border-radius: 4px;
+            background: linear-gradient(135deg, #e0e0e0 0%, #d0d0d0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .mount-icon::before {
+            content: '';
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #555;
+            border: 2px solid #777;
+        }
+        .mount-name {
+            font-size: 0.58rem;
+            color: var(--text-3);
+            font-weight: 500;
+        }
+        
+        /* ---- Left Panel ---- */
+        .left-panel {
+            position: fixed;
+            bottom: 28px;
+            left: 28px;
+            width: 260px;
+            z-index: 20;
+        }
+        
+        /* ---- Bottom Pose Bar ---- */
+        .pose-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            z-index: 20;
+            background: rgba(245, 244, 242, 0.82);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(200,200,200,0.35);
+            border-radius: 12px;
+            padding: 6px;
+        }
+        .pose-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-2);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+        .pose-btn:hover {
+            background: rgba(0,0,0,0.04);
+            color: var(--text);
+        }
+        .pose-btn.active {
+            background: var(--text);
+            color: #fff;
+        }
+        
+        /* ---- Controls hint ---- */
+        .controls-hint {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            font-size: 0.6rem;
+            color: var(--text-3);
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.05em;
+            z-index: 20;
+            text-align: right;
+            line-height: 1.8;
+            opacity: 0.7;
+        }
+        
+        /* ---- Animations ---- */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .anim-fade-up {
+            animation: fadeUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            opacity: 0;
+        }
+        .anim-fade {
+            animation: fadeIn 0.6s ease forwards;
+            opacity: 0;
+        }
+        .d1 { animation-delay: 0.1s; }
+        .d2 { animation-delay: 0.2s; }
+        .d3 { animation-delay: 0.3s; }
+        .d4 { animation-delay: 0.4s; }
+        .d5 { animation-delay: 0.5s; }
+        .d6 { animation-delay: 0.6s; }
+        .d7 { animation-delay: 0.7s; }
+        
+        /* ---- Status indicator ---- */
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #4ade80;
+            display: inline-block;
+            margin-right: 6px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        
+        /* ---- Loading ---- */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .loading-ring {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--text-3);
+            margin-top: 16px;
+            letter-spacing: 0.1em;
+        }
+        
+        /* ---- Tech Tags ---- */
+        .tech-tag {
+            font-size: 0.58rem;
+            font-weight: 500;
+            padding: 3px 9px;
+            border-radius: 5px;
+            background: rgba(200, 149, 108, 0.1);
+            color: var(--accent-dim);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .tech-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 2px 0;
+            font-size: 0.65rem;
+        }
+        .tech-label {
+            color: var(--text-3);
+            font-weight: 500;
+        }
+        .tech-value {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* ---- Component Browser ---- */
+        .browser-toggle {
+            position: fixed;
+            left: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 30;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            padding: 12px 6px;
+            border-radius: 8px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.1em;
+            background: rgba(245,244,242,0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(200,200,200,0.35);
+            color: var(--text-3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        .browser-toggle:hover { color: var(--text); border-color: var(--accent); }
+        .browser-toggle.open { color: var(--accent); border-color: var(--accent); background: rgba(200,149,108,0.1); }
+
+        .browser-panel {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 380px;
+            z-index: 25;
+            background: rgba(245,244,242,0.95);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            border-right: 1px solid rgba(200,200,200,0.4);
+            transform: translateX(-100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            padding: 24px 20px 30px;
+        }
+        .browser-panel.open { transform: translateX(0); }
+
+        .browser-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .browser-sub {
+            font-size: 0.6rem;
+            color: var(--text-3);
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.06em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        .browser-cat {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-3);
+            margin: 16px 0 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .browser-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1.5px solid transparent;
+            margin-bottom: 3px;
+        }
+        .browser-item:hover { background: rgba(0,0,0,0.03); }
+        .browser-item.active { border-color: var(--accent); background: rgba(200,149,108,0.08); }
+        .browser-item-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #3a3a3e, #2a2a2e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+        .browser-item-name {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text);
+            flex: 1;
+        }
+        .browser-item-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            color: var(--text-3);
+            background: rgba(0,0,0,0.04);
+            padding: 2px 7px;
+            border-radius: 4px;
+        }
+        .browser-close {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            background: none;
+            border: none;
+            color: var(--text-3);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+        .browser-close:hover { color: var(--text); }
+
+        /* ---- Scrollbar ---- */
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        
+        /* ---- Responsive ---- */
+        @media (max-width: 1100px) {
+            .right-panel { width: 260px; }
+            .brand-title { font-size: 2rem; }
+        }
+        @media (max-width: 900px) {
+            .right-panel { display: none; }
+            .left-panel { width: 200px; }
+        }
+        @media (max-width: 640px) {
+            .top-bar { padding: 14px 18px; }
+            .brand-title { font-size: 1.5rem; }
+            .left-panel { display: none; }
+            .pose-bar { gap: 2px; padding: 4px; }
+            .pose-btn { padding: 6px 10px; font-size: 0.6rem; }
+            .controls-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loading-screen" id="loading">
+    <div class="loading-ring"></div>
+    <div class="loading-text">INITIALIZING OCTOARMS...</div>
+</div>
+
+<!-- 3D Canvas -->
+<div id="canvas-container"></div>
+
+<!-- UI Layer -->
+<div class="ui-layer">
+    
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="anim-fade-up d1">
+            <div class="brand-title">OCTOARMS</div>
+            <div class="brand-sub">8-DOF Modular Robotic Arm System</div>
+        </div>
+        <div class="anim-fade d3" style="margin-top: 8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="status-dot"></span>
+                        <span class="font-mono" style="font-size:0.6rem;color:var(--text-3);letter-spacing:0.08em;">SYSTEM ONLINE</span>
+                        <button id="micBtn" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.3s ease;font-size:0.8rem;color:var(--text-3);" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="if(!this.classList.contains('listening'))this.style.borderColor='var(--border)'">🎤</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Component Browser Toggle -->
+    <div class="browser-toggle" id="browserToggle">BROWSE</div>
+
+    <!-- Component Browser Panel -->
+    <div class="browser-panel" id="browserPanel">
+        <button class="browser-close" id="browserClose">✕</button>
+        <!-- List view -->
+        <div id="browserListView">
+            <div class="browser-title">Components</div>
+            <div class="browser-sub">Select to highlight &amp; focus</div>
+            <div id="browserList"></div>
+        </div>
+        <!-- Detail view -->
+        <div id="browserDetailView" style="display:none;">
+            <button id="browserBack" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:0.7rem;font-family:'JetBrains Mono',monospace;padding:4px 0;margin-bottom:12px;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-3)'">← Back to list</button>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+                <span id="browserDetailIcon" style="font-size:1.2rem;width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,#3a3a3e,#2a2a2e);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;"></span>
+                <div>
+                    <div id="browserDetailName" style="font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;"></div>
+                    <div id="browserDetailSub" style="font-size:0.6rem;color:var(--text-3);font-family:'JetBrains Mono',monospace;letter-spacing:0.06em;margin-top:2px;"></div>
+                </div>
+            </div>
+            <div id="browserDetailBadge" style="font-size:0.55rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);background:rgba(200,149,108,0.08);padding:3px 10px;border-radius:4px;display:inline-block;margin-bottom:10px;"></div>
+            <div id="browserDetailDesc" style="font-size:0.72rem;color:var(--text-2);line-height:1.6;margin-bottom:12px;"></div>
+            <div id="browserDetailPurpose" style="font-size:0.7rem;color:var(--text-3);line-height:1.5;margin-bottom:12px;padding:10px 12px;background:rgba(0,0,0,0.025);border-radius:8px;"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin-bottom:12px;padding:10px 12px;background:rgba(0,0,0,0.025);border-radius:8px;">
+                <div class="tech-row"><span class="tech-label">Material</span><span id="browserDetailMat" class="tech-value" style="font-size:0.6rem;"></span></div>
+                <div class="tech-row"><span class="tech-label">Specs</span><span id="browserDetailSpecs" class="tech-value" style="font-size:0.6rem;"></span></div>
+            </div>
+            <div id="browserDetailTags" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+        </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+        <!-- Dimensions -->
+        <div class="panel-card anim-fade-up d2">
+            <div class="panel-title">Dimensions</div>
+            <div style="position:relative;height:90px;margin-bottom:8px;">
+                <svg viewBox="0 0 200 80" style="width:100%;height:100%;">
+                    <!-- Top view octagon -->
+                    <polygon points="100,8 140,18 160,40 140,62 100,72 60,62 40,40 60,18" fill="none" stroke="#bbb" stroke-width="0.8"/>
+                    <!-- Arms -->
+                    <line x1="100" y1="8" x2="100" y2="-2" stroke="#bbb" stroke-width="0.6"/>
+                    <line x1="140" y1="18" x2="155" y2="8" stroke="#bbb" stroke-width="0.6"/>
+                    <line x1="160" y1="40" x2="175" y2="40" stroke="#bbb" stroke-width="0.6"/>
+                    <line x1="140" y1="62" x2="155" y2="72" stroke="#bbb" stroke-width="0.6"/>
+                    <line x1="100" y1="72" x2="100" y2="82" stroke="#bbb" stroke-width="0.6"/>
+                    <line x1="60" y1="62" x2="45" y2="72" stroke="#bbb" stroke-width="0.6"/>
+                    <line x1="40" y1="40" x2="25" y2="40" stroke="#bbb" stroke-width="0.6"/>
+                    <line x1="60" y1="18" x2="45" y2="8" stroke="#bbb" stroke-width="0.6"/>
+                    <!-- Labels -->
+                    <text x="100" y="95" text-anchor="middle" font-size="6" fill="#999" font-family="JetBrains Mono">1200 mm</text>
+                </svg>
+            </div>
+            <div class="spec-grid">
+                <div class="spec-row"><span class="spec-label">Span</span><span class="spec-value">1200 mm</span></div>
+                <div class="spec-row"><span class="spec-label">Height</span><span class="spec-value">220 mm</span></div>
+                <div class="spec-row"><span class="spec-label">Base Dia</span><span class="spec-value">180 mm</span></div>
+                <div class="spec-row"><span class="spec-label">Weight</span><span class="spec-value">28 kg</span></div>
+            </div>
+        </div>
+        
+        <!-- Specifications -->
+        <div class="panel-card anim-fade-up d3">
+            <div class="panel-title">Specifications</div>
+            <div class="spec-grid">
+                <div class="spec-row"><span class="spec-label">DOF</span><span class="spec-value">8 / arm</span></div>
+                <div class="spec-row"><span class="spec-label">Payload</span><span class="spec-value">2.5 kg</span></div>
+                <div class="spec-row"><span class="spec-label">Reach</span><span class="spec-value">850 mm</span></div>
+                <div class="spec-row"><span class="spec-label">Repeatability</span><span class="spec-value">+-0.05</span></div>
+                <div class="spec-row"><span class="spec-label">Power</span><span class="spec-value">48V DC</span></div>
+                <div class="spec-row"><span class="spec-label">Comm</span><span class="spec-value">EtherCAT</span></div>
+            </div>
+        </div>
+        
+        <!-- End Effectors -->
+        <div class="panel-card anim-fade-up d4">
+            <div class="panel-title">End Effectors</div>
+            <div class="ee-grid">
+                <div class="ee-item active" data-ee="gripper">
+                    <div class="ee-icon">
+                        <svg viewBox="0 0 24 24"><path d="M7 3v4h3v14h4V7h3V3H7zm2 2h6v1H9V5z"/></svg>
+                    </div>
+                    <div class="ee-name">Precision<br>Gripper</div>
+                </div>
+                <div class="ee-item" data-ee="vacuum">
+                    <div class="ee-icon">
+                        <svg viewBox="0 0 24 24"><ellipse cx="12" cy="8" rx="5" ry="3"/><path d="M7 8v8c0 2.8 2.2 5 5 5s5-2.2 5-5V8"/></svg>
+                    </div>
+                    <div class="ee-name">Vacuum<br>Gripper</div>
+                </div>
+                <div class="ee-item" data-ee="screwdriver">
+                    <div class="ee-icon">
+                        <svg viewBox="0 0 24 24"><rect x="11" y="2" width="2" height="16"/><polygon points="10,18 14,18 12,22"/></svg>
+                    </div>
+                    <div class="ee-name">Screw<br>Driver</div>
+                </div>
+                <div class="ee-item" data-ee="micro">
+                    <div class="ee-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="3"/><line x1="12" y1="9" x2="12" y2="20"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+                    </div>
+                    <div class="ee-name">Micro<br>Manipulator</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mount Options -->
+        <div class="panel-card anim-fade-up d5">
+            <div class="panel-title">Mounting</div>
+            <div class="mount-grid">
+                <div class="mount-item active" data-mount="table">
+                    <div class="mount-icon"></div>
+                    <div class="mount-name">Table</div>
+                </div>
+                <div class="mount-item" data-mount="wall">
+                    <div class="mount-icon" style="transform:rotate(-90deg);"></div>
+                    <div class="mount-name">Wall</div>
+                </div>
+                <div class="mount-item" data-mount="ceiling">
+                    <div class="mount-icon" style="transform:rotate(180deg);"></div>
+                    <div class="mount-name">Ceiling</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Left Panel -->
+    <div class="left-panel anim-fade-up d2">
+        <div class="panel-card">
+            <div class="panel-title">Overview</div>
+            <p style="font-size:0.72rem;color:var(--text-2);line-height:1.7;margin-bottom:12px;">
+                OctoArms is a high-precision, 8-degree-of-freedom robotic arm system designed for industrial, medical, and research applications. Inspired by the flexibility of an octopus, it provides unmatched dexterity, reach, and adaptability.
+            </p>
+            <div class="panel-title" style="margin-top:14px;">Features</div>
+            <ul class="feature-list">
+                <li>8 independent arms</li>
+                <li>Modular &amp; Scalable</li>
+                <li>High precision &amp; payload</li>
+                <li>Compact central hub</li>
+                <li>Multiple end-effector options</li>
+                <li>Advanced cable management</li>
+            </ul>
+            <div class="panel-title" style="margin-top:14px;">Walk Controls</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                <span style="font-size:0.6rem;color:var(--text-3);font-weight:500;min-width:42px;">Speed</span>
+                <input type="range" id="speedSlider" min="0.2" max="3" step="0.1" value="1.5" style="flex:1;accent-color:var(--accent);height:3px;cursor:pointer;">
+                <span id="speedLabel" style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--text-2);min-width:30px;text-align:right;">1.5</span>
+            </div>
+            <div style="font-size:0.6rem;color:var(--text-3);font-family:'JetBrains Mono',monospace;letter-spacing:0.03em;line-height:1.6;">
+                <span style="display:inline-block;min-width:56px;">W A S D</span> Move / Rotate<br>
+                <span style="display:inline-block;min-width:56px;">↑ ← ↓ →</span> Move / Rotate
+            </div>
+            <button id="angleToggle" style="width:100%;margin-top:10px;padding:7px 0;border-radius:7px;font-size:0.63rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--text-3);transition:all 0.2s;letter-spacing:0.03em;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text)'" onmouseout="if(!this.classList.contains('active')){this.style.borderColor='var(--border)';this.style.color='var(--text-3)'}">JOINT ANGLES</button>
+        </div>
+    </div>
+    
+    <!-- Joint Angles Panel -->
+    <div id="anglePanel" style="position:fixed;bottom:76px;left:50%;transform:translateX(-50%);z-index:20;display:none;background:rgba(245,244,242,0.95);backdrop-filter:blur(24px);border:1px solid rgba(200,200,200,0.4);border-radius:12px;padding:14px 18px;min-width:560px;max-width:90vw;box-shadow:0 8px 40px rgba(0,0,0,0.06);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-3);">Joint Angles (degrees)</div>
+            <button id="angleClose" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:0.8rem;padding:2px 6px;border-radius:4px;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-3)'">✕</button>
+        </div>
+        <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:0.6rem;">
+                <thead>
+                    <tr style="color:var(--text-3);border-bottom:1px solid var(--border-light);">
+                        <th style="padding:4px 8px;text-align:left;font-weight:500;">Arm</th>
+                        <th style="padding:4px 8px;text-align:right;font-weight:500;">SYaw</th>
+                        <th style="padding:4px 8px;text-align:right;font-weight:500;">SPitch</th>
+                        <th style="padding:4px 8px;text-align:right;font-weight:500;">Elbow</th>
+                        <th style="padding:4px 8px;text-align:right;font-weight:500;">Wrist</th>
+                        <th style="padding:4px 8px;text-align:right;font-weight:500;">FArm</th>
+                        <th style="padding:4px 8px;text-align:right;font-weight:500;">EE</th>
+                    </tr>
+                </thead>
+                <tbody id="angleTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Voice Status -->
+    <div id="voiceStatus" style="position:fixed;bottom:76px;left:50%;transform:translateX(-50%);z-index:20;display:none;align-items:center;gap:8px;background:rgba(245,244,242,0.88);backdrop-filter:blur(16px);border:1px solid rgba(200,200,200,0.35);border-radius:10px;padding:6px 14px;font-size:0.65rem;color:var(--text-2);font-family:'JetBrains Mono',monospace;letter-spacing:0.03em;transition:opacity 0.3s;">
+        <span id="voiceDot" style="width:6px;height:6px;border-radius:50%;background:#4ade80;display:inline-block;"></span>
+        <span id="voiceText">Listening...</span>
+    </div>
+
+    <!-- Bottom Pose Bar -->
+    <div class="pose-bar anim-fade-up d6">
+        <button class="pose-btn active" data-pose="idle">Idle</button>
+        <button class="pose-btn" data-pose="reach">Reach</button>
+        <button class="pose-btn" data-pose="wave">Wave</button>
+        <button class="pose-btn" data-pose="compact">Compact</button>
+        <button class="pose-btn" data-pose="inspect">Inspect</button>
+        <button class="pose-btn" data-pose="walk">Walk</button>
+    </div>
+    
+    <!-- Component Info Panel -->
+    <div id="compPanel" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;pointer-events:auto;display:none;background:rgba(245,244,242,0.95);backdrop-filter:blur(24px);border:1px solid rgba(200,200,200,0.4);border-radius:16px;padding:22px 26px;width:400px;max-width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.12);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+            <div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span id="compIcon" style="font-size:1.2rem;width:36px;height:36px;border-radius:8px;background:var(--text);color:var(--surface-2);display:flex;align-items:center;justify-content:center;">⬡</span>
+                    <div>
+                        <div id="compName" style="font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;color:var(--text);"></div>
+                        <div id="compArm" style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;"></div>
+                    </div>
+                </div>
+            </div>
+            <button id="compClose" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:1.1rem;padding:4px;line-height:1;border-radius:4px;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-3)'">✕</button>
+        </div>
+        <div id="compDesc" style="font-size:0.75rem;color:var(--text-2);line-height:1.6;margin-bottom:10px;"></div>
+        <div id="compPurpose" style="font-size:0.72rem;color:var(--text-3);line-height:1.5;margin-bottom:10px;padding:10px 12px;background:rgba(0,0,0,0.03);border-radius:8px;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:14px;">
+            <div class="spec-row"><span class="spec-label">Material</span><span id="compMaterial" class="spec-value"></span></div>
+            <div class="spec-row"><span class="spec-label">Specs</span><span id="compSpecs" class="spec-value"></span></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button id="compDetach" style="flex:1;padding:8px 0;border-radius:8px;font-size:0.7rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;border:1.5px solid var(--accent);background:rgba(200,149,108,0.1);color:var(--accent-dim);transition:all 0.2s;" onmouseover="this.style.background='rgba(200,149,108,0.2)'" onmouseout="this.style.background='rgba(200,149,108,0.1)'">Detach Component</button>
+            <button id="compAttach" style="flex:1;padding:8px 0;border-radius:8px;font-size:0.7rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--text-3);transition:all 0.2s;display:none;" onmouseover="this.style.background='rgba(0,0,0,0.03)'" onmouseout="this.style.background='transparent'">Reattach</button>
+        </div>
+    </div>
+
+    <!-- Controls Hint -->
+    <div class="controls-hint anim-fade d7">
+        <div>DRAG to rotate</div>
+        <div>SCROLL to zoom</div>
+        <div>RIGHT-CLICK to pan</div>
+        <div style="margin-top:6px;opacity:0.5;">WASD to walk</div>
+    </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ============================================
+// SCENE SETUP
+// ============================================
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xe8e8e8);
+scene.fog = new THREE.Fog(0xe8e8e8, 18, 35);
+
+const camera = new THREE.PerspectiveCamera(32, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(6, 5.5, 8);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+container.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.04;
+controls.minDistance = 3;
+controls.maxDistance = 18;
+controls.maxPolarAngle = Math.PI / 2.05;
+controls.target.set(0, 0.6, 0);
+controls.update();
+
+// ============================================
+// LIGHTING - Studio setup
+// ============================================
+const ambientLight = new THREE.AmbientLight(0xf5f0e8, 0.5);
+scene.add(ambientLight);
+
+// Key light
+const keyLight = new THREE.DirectionalLight(0xfff8f0, 2.0);
+keyLight.position.set(6, 10, 5);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.width = 2048;
+keyLight.shadow.mapSize.height = 2048;
+keyLight.shadow.camera.near = 0.5;
+keyLight.shadow.camera.far = 30;
+keyLight.shadow.camera.left = -8;
+keyLight.shadow.camera.right = 8;
+keyLight.shadow.camera.top = 8;
+keyLight.shadow.camera.bottom = -8;
+keyLight.shadow.bias = -0.0005;
+keyLight.shadow.normalBias = 0.02;
+scene.add(keyLight);
+
+// Fill light
+const fillLight = new THREE.DirectionalLight(0xe0e8f0, 0.6);
+fillLight.position.set(-5, 6, -3);
+scene.add(fillLight);
+
+// Rim light
+const rimLight = new THREE.DirectionalLight(0xffeedd, 0.8);
+rimLight.position.set(-3, 4, 8);
+scene.add(rimLight);
+
+// Bottom bounce
+const bounceLight = new THREE.DirectionalLight(0xf0ece5, 0.3);
+bounceLight.position.set(0, -2, 0);
+scene.add(bounceLight);
+
+// Accent point lights
+const accent1 = new THREE.PointLight(0xc8956c, 0.4, 8);
+accent1.position.set(3, 2, 3);
+scene.add(accent1);
+
+const accent2 = new THREE.PointLight(0x8a9ab0, 0.3, 8);
+accent2.position.set(-3, 1, -3);
+scene.add(accent2);
+
+// ============================================
+// ENVIRONMENT
+// ============================================
+// Floor
+const floorGeo = new THREE.PlaneGeometry(60, 60);
+const floorMat = new THREE.MeshStandardMaterial({
+    color: 0xe0e0e0,
+    roughness: 0.85,
+    metalness: 0.05,
+});
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -0.52;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// Shadow catcher
+const shadowCatcherGeo = new THREE.PlaneGeometry(12, 12);
+const shadowCatcherMat = new THREE.ShadowMaterial({ opacity: 0.12 });
+const shadowCatcher = new THREE.Mesh(shadowCatcherGeo, shadowCatcherMat);
+shadowCatcher.rotation.x = -Math.PI / 2;
+shadowCatcher.position.y = -0.51;
+shadowCatcher.receiveShadow = true;
+scene.add(shadowCatcher);
+
+// Subtle grid
+const gridHelper = new THREE.GridHelper(20, 40, 0xd0d0d0, 0xe0e0e0);
+gridHelper.position.y = -0.505;
+gridHelper.material.opacity = 0.3;
+gridHelper.material.transparent = true;
+scene.add(gridHelper);
+
+// ============================================
+// MATERIALS
+// ============================================
+const bodyMat = new THREE.MeshPhysicalMaterial({
+    color: 0x2a2a2e,
+    roughness: 0.35,
+    metalness: 0.75,
+    clearcoat: 0.3,
+    clearcoatRoughness: 0.4,
+});
+
+const jointMat = new THREE.MeshPhysicalMaterial({
+    color: 0x1e1e22,
+    roughness: 0.25,
+    metalness: 0.9,
+    clearcoat: 0.5,
+    clearcoatRoughness: 0.2,
+});
+
+const copperMat = new THREE.MeshPhysicalMaterial({
+    color: 0xc8956c,
+    roughness: 0.3,
+    metalness: 0.85,
+    clearcoat: 0.2,
+});
+
+const darkCopperMat = new THREE.MeshPhysicalMaterial({
+    color: 0x8a6a4a,
+    roughness: 0.4,
+    metalness: 0.8,
+});
+
+const accentMat = new THREE.MeshPhysicalMaterial({
+    color: 0xd4a574,
+    roughness: 0.2,
+    metalness: 0.9,
+    emissive: 0x332211,
+    emissiveIntensity: 0.1,
+});
+
+const gripperMat = new THREE.MeshPhysicalMaterial({
+    color: 0x333338,
+    roughness: 0.4,
+    metalness: 0.7,
+});
+
+const screwMat = new THREE.MeshPhysicalMaterial({
+    color: 0xc0c0c5,
+    roughness: 0.15,
+    metalness: 0.95,
+});
+
+const baseMat = new THREE.MeshPhysicalMaterial({
+    color: 0x252528,
+    roughness: 0.5,
+    metalness: 0.6,
+});
+
+const cableMat = new THREE.MeshStandardMaterial({
+    color: 0x1a1a1e,
+    roughness: 0.7,
+    metalness: 0.1,
+});
+
+// ============================================
+// COMPONENT INFO SYSTEM
+// ============================================
+const componentInfo = {
+    base: {
+        name: 'Base Mount',
+        icon: '⬡',
+        desc: 'Reinforced aluminum-alloy base with vibration-dampening mount points.',
+        purpose: 'Provides stable foundation and houses power regulation. 12 M8 bolt pattern for secure installation.',
+        material: '6061 Aluminum / Steel inserts',
+        specs: 'Dia 180mm · 35mm height · 28kg total',
+    },
+    body: {
+        name: 'Octagonal Hub',
+        icon: '⬡',
+        desc: 'CNC-machined octagonal chassis that distributes structural load across all 8 arm mounts.',
+        purpose: 'Central structural backbone — houses main controller, IMU, and power distribution. 8 symmetric faces for balanced arm mounting.',
+        material: '7075 Aluminum / Carbon-fiber reinforced',
+        specs: 'Span 170mm · 8 faces · 12mm wall thickness',
+    },
+    dome: {
+        name: 'Sensor Dome',
+        icon: '◉',
+        desc: 'Hemispherical sensor cluster housing LIDAR, 360° cameras, and communication array.',
+        purpose: 'Environmental sensing, vision processing, and wireless communication relay.',
+        material: 'Polycarbonate / ABS / RF-transparent',
+        specs: 'Dia 70mm · 6 DOF IMU inside · 5MP cameras × 4',
+    },
+    shoulder: {
+        name: 'Shoulder Joint',
+        icon: '●',
+        desc: 'High-torque 2-DOF spherical joint with harmonic drive transmission.',
+        purpose: 'Primary arm articulation — provides yaw and pitch for gross positioning. Zero-backlash design.',
+        material: 'Steel / Brass alloy / Ceramic bearings',
+        specs: '2 DOF · ±180° yaw · ±120° pitch · 8 Nm torque',
+    },
+    segment1: {
+        name: 'Upper Arm Link',
+        icon: '▤',
+        desc: 'Carbon-fiber composite arm segment with internal cable routing.',
+        purpose: 'Lightweight structural link between shoulder and elbow. Houses actuator wiring and cooling channels.',
+        material: 'Carbon-fiber / Titanium end fittings',
+        specs: '550mm length · 13mm dia · 180g',
+    },
+    elbow: {
+        name: 'Elbow Joint',
+        icon: '●',
+        desc: 'Compact 1-DOF joint with brushless DC motor and planetary gearbox.',
+        purpose: 'Elbow flexion/extension for arm reach and positioning.',
+        material: 'Aluminum / Steel gears / Nylon insulator',
+        specs: '1 DOF · ±150° · 4 Nm torque · 80g',
+    },
+    segment2: {
+        name: 'Forearm Link',
+        icon: '▤',
+        desc: 'Tapered carbon-fiber tube with embedded strain gauges.',
+        purpose: 'Forearm structure with integrated force sensing for delicate manipulation.',
+        material: 'Carbon-fiber / Copper shielding',
+        specs: '450mm length · 11mm dia · 140g',
+    },
+    wrist: {
+        name: 'Wrist Joint',
+        icon: '●',
+        desc: 'Miniature 1-DOF wrist joint with cable-driven actuation.',
+        purpose: 'Wrist flexion for end-effector orientation.',
+        material: 'Titanium / Stainless steel / PTFE liner',
+        specs: '1 DOF · ±180° · 1.5 Nm · 45g',
+    },
+    segment3: {
+        name: 'Wrist Link',
+        icon: '▤',
+        desc: 'Ultra-lightweight carbon tube for distal arm section.',
+        purpose: 'Connects wrist to forearm joint with minimal inertia.',
+        material: 'Carbon-fiber / Magnesium end rings',
+        specs: '350mm length · 9mm dia · 90g',
+    },
+    forearm: {
+        name: 'Forearm Joint',
+        icon: '●',
+        desc: 'Micro 1-DOF pre-wrist joint for fine positioning.',
+        purpose: 'Additional DOF for complex orientations and precision alignment.',
+        material: 'Titanium / Brass bushing',
+        specs: '1 DOF · ±135° · 0.8 Nm · 28g',
+    },
+    segment4: {
+        name: 'Distal Link',
+        icon: '▤',
+        desc: 'Short carbon link with quick-change end-effector mount.',
+        purpose: 'Final link before end effector — features tool-side connector for hot-swap.',
+        material: 'Carbon-fiber / Steel connector',
+        specs: '280mm length · 7.6mm dia · 55g',
+    },
+    end_effector: {
+        name: 'End Effector',
+        icon: '⊞',
+        desc: 'Interchangeable tool head — precision gripper, vacuum cup, screwdriver, or micro-manipulator.',
+        purpose: 'Task-specific interaction with the environment. Tool-side quick-change interface.',
+        material: 'Steel / Silicone pads / Tungsten carbide tips',
+        specs: 'Interchangeable · < 50g each · Tool-side connector',
+    },
+};
+
+function tagComponent(group, type, armIndex = -1) {
+    const info = componentInfo[type];
+    group.userData = {
+        isComponent: true,
+        componentType: type,
+        armIndex,
+        name: info.name,
+        icon: info.icon,
+        desc: info.desc,
+        purpose: info.purpose,
+        material: info.material,
+        specs: info.specs,
+    };
+    group.traverse(child => {
+        if (child.isMesh) {
+            child.userData.isComponent = true;
+            child.userData.componentType = type;
+            child.userData.armIndex = armIndex;
+        }
+    });
+}
+
+// ============================================
+// ROBOT BUILDER
+// ============================================
+const robotGroup = new THREE.Group();
+scene.add(robotGroup);
+
+// ---- BASE ----
+function createBase() {
+    const g = new THREE.Group();
+    
+    // Main cylinder
+    const cyl = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.65, 0.75, 0.35, 32),
+        baseMat
+    );
+    cyl.position.y = -0.175;
+    cyl.castShadow = true;
+    cyl.receiveShadow = true;
+    g.add(cyl);
+    
+    // Bottom ring
+    const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(0.72, 0.04, 12, 48),
+        jointMat
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = -0.35;
+    ring.castShadow = true;
+    g.add(ring);
+    
+    // Top ring
+    const topRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.68, 0.03, 10, 48),
+        copperMat
+    );
+    topRing.rotation.x = Math.PI / 2;
+    topRing.position.y = 0.0;
+    g.add(topRing);
+    
+    // Bolts around base
+    for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2;
+        const bolt = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.025, 0.025, 0.06, 8),
+            screwMat
+        );
+        bolt.position.set(Math.cos(angle) * 0.7, -0.32, Math.sin(angle) * 0.7);
+        g.add(bolt);
+    }
+    
+    tagComponent(g, 'base');
+    return g;
+}
+
+const baseGroup = createBase();
+robotGroup.add(baseGroup);
+
+// ---- BODY (OCTAGONAL HUB) ----
+function createBody() {
+    const g = new THREE.Group();
+    
+    // Main octagonal body
+    const bodyShape = new THREE.Shape();
+    const r = 0.85;
+    const rInner = 0.55;
+    for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2 - Math.PI / 8;
+        const x = Math.cos(a) * r;
+        const z = Math.sin(a) * r;
+        if (i === 0) bodyShape.moveTo(x, z);
+        else bodyShape.lineTo(x, z);
+    }
+    bodyShape.closePath();
+    
+    const extrudeSettings = { depth: 0.18, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 3 };
+    const bodyGeo = new THREE.ExtrudeGeometry(bodyShape, extrudeSettings);
+    bodyGeo.rotateX(-Math.PI / 2);
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.position.y = 0.05;
+    body.castShadow = true;
+    body.receiveShadow = true;
+    g.add(body);
+    
+    // Top plate
+    const topPlate = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.5, 0.5, 0.04, 32),
+        jointMat
+    );
+    topPlate.position.y = 0.28;
+    topPlate.castShadow = true;
+    g.add(topPlate);
+    
+    // Center dome
+    const domeMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(0.35, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2),
+        jointMat
+    );
+    domeMesh.position.y = 0.28;
+    domeMesh.castShadow = true;
+    domeMesh.userData.isComponent = true;
+    domeMesh.userData.componentType = 'dome';
+    g.add(domeMesh);
+    
+    // Copper ring around dome
+    const domeRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.36, 0.015, 8, 32),
+        copperMat
+    );
+    domeRing.rotation.x = Math.PI / 2;
+    domeRing.position.y = 0.3;
+    g.add(domeRing);
+    
+    // Vents / detail lines on body
+    for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const vent = new THREE.Mesh(
+            new THREE.BoxGeometry(0.04, 0.01, 0.25),
+            darkCopperMat
+        );
+        vent.position.set(Math.cos(a) * 0.65, 0.26, Math.sin(a) * 0.65);
+        vent.rotation.y = a;
+        g.add(vent);
+    }
+    
+    // Small indicator LEDs
+    for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const led = new THREE.Mesh(
+            new THREE.SphereGeometry(0.02, 8, 8),
+            accentMat
+        );
+        led.position.set(Math.cos(a) * 0.78, 0.24, Math.sin(a) * 0.78);
+        g.add(led);
+    }
+    
+    tagComponent(g, 'body');
+    return g;
+}
+
+const bodyGroup = createBody();
+robotGroup.add(bodyGroup);
+
+// ---- ARM BUILDER ----
+function createJoint(radius, height, mat = jointMat) {
+    const g = new THREE.Group();
+    
+    // Main sphere joint
+    const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(radius, 20, 16),
+        mat
+    );
+    sphere.castShadow = true;
+    g.add(sphere);
+    
+    // Copper accent ring
+    const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(radius * 0.85, 0.012, 8, 24),
+        copperMat
+    );
+    ring.rotation.x = Math.PI / 2;
+    g.add(ring);
+    
+    // Cap
+    const cap = new THREE.Mesh(
+        new THREE.CylinderGeometry(radius * 0.7, radius * 0.7, height, 16),
+        mat
+    );
+    cap.position.y = height / 2;
+    cap.castShadow = true;
+    g.add(cap);
+    
+    // Bottom cap
+    const bcap = new THREE.Mesh(
+        new THREE.CylinderGeometry(radius * 0.7, radius * 0.7, height, 16),
+        mat
+    );
+    bcap.position.y = -height / 2;
+    bcap.castShadow = true;
+    g.add(bcap);
+    
+    return g;
+}
+
+function createArmSegment(length, radius, mat = bodyMat) {
+    const g = new THREE.Group();
+    
+    // Main tube
+    const tube = new THREE.Mesh(
+        new THREE.CylinderGeometry(radius, radius * 0.85, length, 16),
+        mat
+    );
+    tube.position.y = length / 2;
+    tube.castShadow = true;
+    g.add(tube);
+    
+    // Detail ridges
+    const ridgeCount = 3;
+    for (let i = 0; i < ridgeCount; i++) {
+        const ridge = new THREE.Mesh(
+            new THREE.TorusGeometry(radius * 0.9, 0.008, 6, 20),
+            darkCopperMat
+        );
+        ridge.rotation.x = Math.PI / 2;
+        ridge.position.y = length * (0.2 + i * 0.3);
+        g.add(ridge);
+    }
+    
+    // Cable detail
+    const cable = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.012, 0.012, length * 0.7, 6),
+        cableMat
+    );
+    cable.position.set(radius + 0.015, length * 0.5, 0);
+    g.add(cable);
+    
+    return g;
+}
+
+function createGripper() {
+    const g = new THREE.Group();
+    
+    // Wrist
+    const wrist = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.07, 0.06, 0.1, 12),
+        jointMat
+    );
+    wrist.position.y = 0.05;
+    wrist.castShadow = true;
+    g.add(wrist);
+    
+    // Finger base
+    const fBase = new THREE.Mesh(
+        new THREE.BoxGeometry(0.14, 0.06, 0.08),
+        gripperMat
+    );
+    fBase.position.y = 0.14;
+    fBase.castShadow = true;
+    g.add(fBase);
+    
+    // Left finger
+    const lf = new THREE.Mesh(
+        new THREE.BoxGeometry(0.025, 0.18, 0.03),
+        gripperMat
+    );
+    lf.position.set(-0.04, 0.26, 0);
+    lf.rotation.z = 0.08;
+    lf.castShadow = true;
+    g.add(lf);
+    
+    // Right finger
+    const rf = new THREE.Mesh(
+        new THREE.BoxGeometry(0.025, 0.18, 0.03),
+        gripperMat
+    );
+    rf.position.set(0.04, 0.26, 0);
+    rf.rotation.z = -0.08;
+    rf.castShadow = true;
+    g.add(rf);
+    
+    // Finger tips
+    const ltip = new THREE.Mesh(
+        new THREE.ConeGeometry(0.015, 0.06, 6),
+        copperMat
+    );
+    ltip.position.set(-0.045, 0.38, 0);
+    ltip.rotation.z = 0.15;
+    g.add(ltip);
+    
+    const rtip = new THREE.Mesh(
+        new THREE.ConeGeometry(0.015, 0.06, 6),
+        copperMat
+    );
+    rtip.position.set(0.045, 0.38, 0);
+    rtip.rotation.z = -0.15;
+    g.add(rtip);
+    
+    return g;
+}
+
+function createVacuumGripper() {
+    const g = new THREE.Group();
+    const wrist = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.06, 0.1, 12), jointMat);
+    wrist.position.y = 0.05;
+    g.add(wrist);
+    const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.06, 0.12, 16), gripperMat);
+    cup.position.y = 0.18;
+    g.add(cup);
+    const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.01, 0.06, 8), copperMat);
+    nozzle.position.y = 0.28;
+    g.add(nozzle);
+    return g;
+}
+
+function createScrewdriver() {
+    const g = new THREE.Group();
+    const wrist = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.06, 0.1, 12), jointMat);
+    wrist.position.y = 0.05;
+    g.add(wrist);
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.15, 12), gripperMat);
+    body.position.y = 0.18;
+    g.add(body);
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.008, 0.2, 8), screwMat);
+    shaft.position.y = 0.32;
+    g.add(shaft);
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.008, 0.04, 6), copperMat);
+    tip.position.y = 0.44;
+    g.add(tip);
+    return g;
+}
+
+function createMicroManipulator() {
+    const g = new THREE.Group();
+    const wrist = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.06, 0.1, 12), jointMat);
+    wrist.position.y = 0.05;
+    g.add(wrist);
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 12), gripperMat);
+    body.position.y = 0.15;
+    g.add(body);
+    const needle = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.003, 0.25, 6), screwMat);
+    needle.position.y = 0.32;
+    g.add(needle);
+    return g;
+}
+
+const endEffectors = {
+    gripper: createGripper(),
+    vacuum: createVacuumGripper(),
+    screwdriver: createScrewdriver(),
+    micro: createMicroManipulator(),
+};
+
+// ---- BUILD 8 ARMS ----
+const arms = [];
+const armCount = 8;
+
+for (let i = 0; i < armCount; i++) {
+    const angle = (i / armCount) * Math.PI * 2 - Math.PI / 8;
+    const armGroup = new THREE.Group();
+    
+    // Position on body
+    const mountRadius = 0.82;
+    armGroup.position.set(
+        Math.cos(angle) * mountRadius,
+        0.2,
+        Math.sin(angle) * mountRadius
+    );
+    armGroup.rotation.y = -angle - Math.PI / 2;
+    
+    // ---- SEGMENT 1: Shoulder ----
+    const shoulder = createJoint(0.1, 0.04);
+    tagComponent(shoulder, 'shoulder', i);
+    armGroup.add(shoulder);
+    
+    const seg1 = createArmSegment(0.55, 0.065);
+    tagComponent(seg1, 'segment1', i);
+    seg1.position.y = 0.04;
+    shoulder.add(seg1);
+    
+    // ---- SEGMENT 2: Elbow ----
+    const elbow = createJoint(0.085, 0.035);
+    tagComponent(elbow, 'elbow', i);
+    elbow.position.y = 0.55;
+    seg1.add(elbow);
+    
+    const seg2 = createArmSegment(0.45, 0.055);
+    tagComponent(seg2, 'segment2', i);
+    seg2.position.y = 0.035;
+    elbow.add(seg2);
+    
+    // ---- SEGMENT 3: Wrist ----
+    const wrist = createJoint(0.07, 0.03);
+    tagComponent(wrist, 'wrist', i);
+    wrist.position.y = 0.45;
+    seg2.add(wrist);
+    
+    const seg3 = createArmSegment(0.35, 0.045);
+    tagComponent(seg3, 'segment3', i);
+    seg3.position.y = 0.03;
+    wrist.add(seg3);
+    
+    // ---- SEGMENT 4: Forearm ----
+    const forearm = createJoint(0.055, 0.025);
+    tagComponent(forearm, 'forearm', i);
+    forearm.position.y = 0.35;
+    seg3.add(forearm);
+    
+    const seg4 = createArmSegment(0.28, 0.038);
+    tagComponent(seg4, 'segment4', i);
+    seg4.position.y = 0.025;
+    forearm.add(seg4);
+    
+    // ---- END EFFECTOR ----
+    const eePivot = new THREE.Group();
+    eePivot.position.y = 0.28;
+    seg4.add(eePivot);
+    
+    const ee = endEffectors.gripper.clone();
+    tagComponent(ee, 'end_effector', i);
+    eePivot.add(ee);
+    
+    robotGroup.add(armGroup);
+    
+    arms.push({
+        group: armGroup,
+        shoulder, elbow, wrist, forearm, eePivot,
+        baseAngle: angle,
+        index: i,
+        eeMesh: ee,
+    });
+}
+
+// ============================================
+// POSE SYSTEM
+// ============================================
+let currentPose = 'idle';
+let targetPose = 'idle';
+let poseTransition = 0;
+let prevPose = 'idle';
+
+const poses = {
+    idle: (i, t) => ({
+        shoulderY: Math.sin(t * 0.4 + i * 0.8) * 0.08,
+        shoulderZ: Math.sin(t * 0.3 + i * 1.2) * 0.06 + 0.15,
+        elbowZ: -0.6 + Math.sin(t * 0.35 + i * 0.9) * 0.05,
+        wristZ: 0.4 + Math.sin(t * 0.45 + i * 1.1) * 0.04,
+        forearmZ: 0.3 + Math.sin(t * 0.38 + i * 0.7) * 0.03,
+        eeY: Math.sin(t * 0.5 + i) * 0.06,
+    }),
+    reach: (i, t) => ({
+        shoulderY: Math.sin(t * 0.6 + i * 0.5) * 0.25,
+        shoulderZ: 0.5 + Math.sin(t * 0.4 + i) * 0.15,
+        elbowZ: -1.0 + Math.sin(t * 0.5 + i * 0.7) * 0.2,
+        wristZ: 0.7 + Math.sin(t * 0.45 + i * 0.8) * 0.1,
+        forearmZ: 0.5 + Math.sin(t * 0.35 + i * 0.6) * 0.08,
+        eeY: Math.sin(t * 0.55 + i * 0.9) * 0.15,
+    }),
+    wave: (i, t) => ({
+        shoulderY: Math.sin(t * 1.2 + i * 0.3) * 0.5,
+        shoulderZ: 0.3 + Math.sin(t * 0.8 + i * 0.5) * 0.2,
+        elbowZ: -0.8 + Math.sin(t * 1.0 + i * 0.4) * 0.3,
+        wristZ: 0.5 + Math.sin(t * 1.1 + i * 0.6) * 0.25,
+        forearmZ: 0.4 + Math.sin(t * 0.9 + i * 0.7) * 0.2,
+        eeY: Math.sin(t * 1.3 + i * 0.5) * 0.3,
+    }),
+    compact: (i, t) => ({
+        shoulderY: Math.sin(t * 0.2 + i * 0.5) * 0.03,
+        shoulderZ: -0.1 + Math.sin(t * 0.15 + i * 0.3) * 0.02,
+        elbowZ: -0.2 + Math.sin(t * 0.18 + i * 0.4) * 0.03,
+        wristZ: 0.1 + Math.sin(t * 0.2 + i * 0.6) * 0.02,
+        forearmZ: 0.05 + Math.sin(t * 0.16 + i * 0.5) * 0.02,
+        eeY: Math.sin(t * 0.22 + i * 0.4) * 0.02,
+    }),
+    inspect: (i, t) => ({
+        shoulderY: Math.sin(t * 0.3 + i * 0.9) * 0.15,
+        shoulderZ: 0.2 + Math.sin(t * 0.25 + i * 1.1) * 0.1,
+        elbowZ: -0.5 + Math.sin(t * 0.35 + i * 0.8) * 0.12,
+        wristZ: 0.6 + Math.sin(t * 0.4 + i * 1.0) * 0.08,
+        forearmZ: 0.35 + Math.sin(t * 0.3 + i * 0.7) * 0.06,
+        eeY: Math.sin(t * 0.45 + i * 1.2) * 0.1,
+    }),
+    walk: (i, t) => {
+        const cycle = t * walkSpeed * 2;
+        const phase = cycle + (i % 2 === 0 ? 0 : Math.PI);
+        const lift = Math.max(0, Math.sin(phase));
+        const swing = Math.sin(phase);
+        return {
+            shoulderY: swing * 0.5,
+            shoulderZ: -0.9 - lift * 0.3,
+            elbowZ: -0.5 - lift * 0.3,
+            wristZ: -0.25 - lift * 0.2,
+            forearmZ: -0.15 - lift * 0.15,
+            eeY: lift * 0.1,
+        };
+    },
+};
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+// ============================================
+// INTERACTION
+// ============================================
+
+// Pose buttons
+document.querySelectorAll('.pose-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.pose-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        prevPose = currentPose;
+        currentPose = btn.dataset.pose;
+        poseTransition = 0;
+    });
+});
+
+// End effector buttons
+document.querySelectorAll('.ee-item').forEach(item => {
+    item.addEventListener('click', () => {
+        document.querySelectorAll('.ee-item').forEach(e => e.classList.remove('active'));
+        item.classList.add('active');
+        const type = item.dataset.ee;
+        arms.forEach(arm => {
+            arm.eePivot.remove(arm.eeMesh);
+            arm.eeMesh = endEffectors[type].clone();
+            tagComponent(arm.eeMesh, 'end_effector', arm.index);
+            arm.eePivot.add(arm.eeMesh);
+        });
+    });
+});
+
+// Mount buttons
+document.querySelectorAll('.mount-item').forEach(item => {
+    item.addEventListener('click', () => {
+        document.querySelectorAll('.mount-item').forEach(m => m.classList.remove('active'));
+        item.classList.add('active');
+        const mount = item.dataset.mount;
+        
+        // Animate robot to new mount position
+        const targetRot = mount === 'wall' ? new THREE.Euler(0, 0, -Math.PI / 2) :
+                         mount === 'ceiling' ? new THREE.Euler(0, 0, Math.PI) :
+                         new THREE.Euler(0, 0, 0);
+        
+        // Simple transition
+        let progress = 0;
+        const startRot = robotGroup.rotation.clone();
+        const animateMount = () => {
+            progress += 0.02;
+            if (progress >= 1) progress = 1;
+            const ease = 1 - Math.pow(1 - progress, 3);
+            robotGroup.rotation.x = lerp(startRot.x, targetRot.x, ease);
+            robotGroup.rotation.z = lerp(startRot.z, targetRot.z, ease);
+            if (progress < 1) requestAnimationFrame(animateMount);
+        };
+        animateMount();
+    });
+});
+
+// ============================================
+// WALK CONTROLS
+// ============================================
+let walkSpeed = 1.5;
+const keys = { w: false, a: false, s: false, d: false, arrowup: false, arrowdown: false, arrowleft: false, arrowright: false };
+
+window.addEventListener('keydown', (e) => {
+    switch (e.code) {
+        case 'KeyW': keys.w = true; e.preventDefault(); break;
+        case 'KeyA': keys.a = true; e.preventDefault(); break;
+        case 'KeyS': keys.s = true; e.preventDefault(); break;
+        case 'KeyD': keys.d = true; e.preventDefault(); break;
+        case 'ArrowUp': keys.arrowup = true; e.preventDefault(); break;
+        case 'ArrowDown': keys.arrowdown = true; e.preventDefault(); break;
+        case 'ArrowLeft': keys.arrowleft = true; e.preventDefault(); break;
+        case 'ArrowRight': keys.arrowright = true; e.preventDefault(); break;
+    }
+});
+window.addEventListener('keyup', (e) => {
+    switch (e.code) {
+        case 'KeyW': keys.w = false; e.preventDefault(); break;
+        case 'KeyA': keys.a = false; e.preventDefault(); break;
+        case 'KeyS': keys.s = false; e.preventDefault(); break;
+        case 'KeyD': keys.d = false; e.preventDefault(); break;
+        case 'ArrowUp': keys.arrowup = false; e.preventDefault(); break;
+        case 'ArrowDown': keys.arrowdown = false; e.preventDefault(); break;
+        case 'ArrowLeft': keys.arrowleft = false; e.preventDefault(); break;
+        case 'ArrowRight': keys.arrowright = false; e.preventDefault(); break;
+    }
+});
+window.addEventListener('blur', () => {
+    for (const k in keys) keys[k] = false;
+});
+
+document.getElementById('speedSlider').addEventListener('input', (e) => {
+    walkSpeed = parseFloat(e.target.value);
+    document.getElementById('speedLabel').textContent = walkSpeed.toFixed(1);
+});
+
+// ============================================
+// COMPONENT SELECTION & DETACH
+// ============================================
+let selectedComponent = null;
+let selectedGroup = null;
+const detachedParts = [];
+
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+const clickables = [];
+
+function refreshClickables() {
+    clickables.length = 0;
+    scene.traverse(child => {
+        if (child.isMesh && child.userData.isComponent) clickables.push(child);
+    });
+}
+
+let pointerDownPos = { x: 0, y: 0 };
+renderer.domElement.addEventListener('pointerdown', (event) => {
+    pointerDownPos.x = event.clientX;
+    pointerDownPos.y = event.clientY;
+});
+renderer.domElement.addEventListener('pointerup', (event) => {
+    const dx = event.clientX - pointerDownPos.x;
+    const dy = event.clientY - pointerDownPos.y;
+    if (Math.sqrt(dx * dx + dy * dy) > 5) return; // was a drag, not a click
+    
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    
+    raycaster.setFromCamera(pointer, camera);
+    refreshClickables();
+    const intersects = raycaster.intersectObjects(clickables);
+    
+    if (intersects.length > 0) {
+        let hit = intersects[0].object;
+        // Walk up to find the component group
+        let group = hit;
+        while (group.parent && !(group.userData && group.userData.isComponent && group.userData.name)) {
+            group = group.parent;
+        }
+        
+        if (group.userData && group.userData.isComponent && group.userData.name) {
+            showComponentInfo(group);
+            return;
+        }
+    }
+    
+    // Click on empty space — deselect
+    hideComponentInfo();
+});
+
+function showComponentInfo(group) {
+    selectedGroup = group;
+    const d = group.userData;
+    
+    document.getElementById('compIcon').textContent = d.icon || '⬡';
+    document.getElementById('compName').textContent = d.name;
+    document.getElementById('compArm').textContent = d.armIndex >= 0 ? `Arm ${d.armIndex + 1}` : '';
+    document.getElementById('compDesc').textContent = d.desc;
+    document.getElementById('compPurpose').textContent = d.purpose;
+    document.getElementById('compMaterial').textContent = d.material;
+    document.getElementById('compSpecs').textContent = d.specs;
+    
+    const isDetached = detachedParts.includes(group);
+    document.getElementById('compDetach').style.display = isDetached ? 'none' : 'block';
+    document.getElementById('compAttach').style.display = isDetached ? 'block' : 'none';
+    
+    document.getElementById('compPanel').style.display = 'block';
+    
+    // Highlight
+    group.traverse(child => {
+        if (child.isMesh && child.material) {
+            child.material = child.material.clone();
+            child.material.emissive = new THREE.Color(0xc8956c);
+            child.material.emissiveIntensity = 0.25;
+        }
+    });
+    
+    selectedComponent = group;
+}
+
+function hideComponentInfo() {
+    document.getElementById('compPanel').style.display = 'none';
+    if (selectedComponent) {
+        // Remove highlight
+        selectedComponent.traverse(child => {
+            if (child.isMesh && child.material) {
+                child.material.emissiveIntensity = 0;
+            }
+        });
+        selectedComponent = null;
+    }
+}
+
+// Detach
+document.getElementById('compDetach').addEventListener('click', () => {
+    if (!selectedComponent) return;
+    const group = selectedComponent;
+    const d = group.userData;
+    const isDetached = detachedParts.includes(group);
+    
+    if (!isDetached) {
+        detachedParts.push(group);
+        const parent = group.parent;
+        
+        // Animate outward from robot center
+        const worldPos = new THREE.Vector3();
+        group.getWorldPosition(worldPos);
+        const dir = worldPos.clone().normalize();
+        if (dir.length() < 0.01) dir.set(0, 1, 0);
+        
+        const targetPos = worldPos.clone().add(dir.clone().multiplyScalar(2.0));
+        const startPos = group.position.clone();
+        
+        const detachAnim = () => {
+            group.position.lerp(targetPos, 0.04);
+            if (group.position.distanceTo(targetPos) > 0.01) {
+                requestAnimationFrame(detachAnim);
+            }
+        };
+        detachAnim();
+        
+        document.getElementById('compDetach').style.display = 'none';
+        document.getElementById('compAttach').style.display = 'block';
+    }
+});
+
+// Reattach
+document.getElementById('compAttach').addEventListener('click', () => {
+    if (!selectedComponent) return;
+    const group = selectedComponent;
+    const idx = detachedParts.indexOf(group);
+    
+    if (idx >= 0) {
+        detachedParts.splice(idx, 1);
+        // Animate back
+        const targetPos = new THREE.Vector3(0, 0, 0);
+        const startPos = group.position.clone();
+        
+        const attachAnim = () => {
+            group.position.lerp(targetPos, 0.04);
+            if (group.position.distanceTo(targetPos) > 0.01) {
+                requestAnimationFrame(attachAnim);
+            } else {
+                group.position.set(0, 0, 0);
+            }
+        };
+        attachAnim();
+        
+        document.getElementById('compDetach').style.display = 'block';
+        document.getElementById('compAttach').style.display = 'none';
+    }
+});
+
+// Close panel
+document.getElementById('compClose').addEventListener('click', hideComponentInfo);
+
+// ============================================
+// CAMERA FOCUS
+// ============================================
+let focusTarget = null;
+
+function focusOnComponent(groupOrList) {
+    const list = Array.isArray(groupOrList) ? groupOrList : [groupOrList];
+    if (list.length === 0) return;
+    
+    const box = new THREE.Box3();
+    let hasAny = false;
+    list.forEach(g => {
+        g.traverse(child => {
+            if (child.isMesh) { box.expandByObject(child); hasAny = true; }
+        });
+    });
+    if (!hasAny) return;
+    
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z, 0.5);
+    const dist = maxDim * 3.5;
+    
+    focusTarget = { center, dist };
+    controls.minDistance = dist * 0.3;
+}
+
+// Apply camera focus each frame
+function applyFocus() {
+    if (!focusTarget) return;
+    controls.target.lerp(focusTarget.center, 0.04);
+    const currentDist = camera.position.distanceTo(controls.target);
+    const targetDist = focusTarget.dist;
+    if (Math.abs(currentDist - targetDist) > 0.05) {
+        const dir = camera.position.clone().sub(controls.target).normalize();
+        const newPos = controls.target.clone().add(dir.multiplyScalar(targetDist));
+        camera.position.lerp(newPos, 0.025);
+    }
+    if (controls.target.distanceTo(focusTarget.center) < 0.01 &&
+        Math.abs(camera.position.distanceTo(controls.target) - focusTarget.dist) < 0.05) {
+        focusTarget = null;
+    }
+}
+
+// Modify showComponentInfo to focus camera
+const origShowComponentInfo = showComponentInfo;
+showComponentInfo = function(group) {
+    origShowComponentInfo(group);
+    focusOnComponent(group);
+};
+
+// ============================================
+// COMPONENT BROWSER
+// ============================================
+const browserData = [
+    { cat: 'Structural', icon: '⬡', type: 'base', name: 'Base Mount', sub: 'Chassis Foundation', count: 1,
+      desc: 'Reinforced aluminum-alloy base with integrated vibration-dampening elastomer mounts. Provides the mechanical and electrical foundation for the entire system.',
+      purpose: 'Stable foundation with 12 × M8 bolt pattern. Houses power regulation and acts as thermal interface with the mounting surface.',
+      material: '6061-T6 Aluminum', specs: 'Dia 180mm · 35mm height',
+      tags: ['6061-T6 Aluminum', 'CNC Machined', 'Sorbothane Dampers', 'M8 × 12 Bolt Pattern'] },
+    { cat: 'Structural', icon: '⬡', type: 'body', name: 'Octagonal Hub', sub: 'Central Chassis', count: 1,
+      desc: 'CNC-machined 7075 aluminum monocoque chassis with 8 symmetric mounting faces. Houses the main controller PCB, IMU, and power distribution board.',
+      purpose: 'Central structural backbone — distributes load across all 8 arm mounts. Houses main controller, IMU, and power distribution.',
+      material: '7075-T6 Aluminum', specs: 'Span 170mm · 12mm wall',
+      tags: ['7075-T6 Aluminum', '5-Axis CNC', 'FEA Optimized', 'Carbon-fiber inserts'] },
+    { cat: 'Structural', icon: '▤', type: 'segment1', name: 'Upper Arm Link', sub: 'Segment 1 — Proximal', count: 8,
+      desc: 'High-modulus carbon-fiber tube with titanium end fittings. Internal channels route actuator wiring, cooling lines, and signal cables. Pre-stressed for minimal torsional deflection under load.',
+      purpose: 'Lightweight structural link between shoulder and elbow. Houses actuator wiring and cooling channels.',
+      material: 'Toray T700 Carbon / Ti-6Al-4V', specs: '550mm · 13mm OD · 180g',
+      tags: ['Toray T700 Carbon', 'Filament Wound', 'Ti-6Al-4V Fittings', 'Internal Cable Routing'] },
+    { cat: 'Structural', icon: '▤', type: 'segment2', name: 'Forearm Link', sub: 'Segment 2 — Mid', count: 8,
+      desc: 'Tapered carbon-fiber tube with embedded strain-gauge bridges for real-time force sensing. Copper shielding tape protects signal integrity of the force-feedback loop.',
+      purpose: 'Forearm structure with integrated force sensing for delicate manipulation tasks.',
+      material: 'Toray M40X Carbon / Copper', specs: '450mm · 11→9mm OD · 140g',
+      tags: ['Toray M40X Carbon', 'Autoclave Cured', 'Copper EMI Shield', 'Embedded Strain Gauges'] },
+    { cat: 'Structural', icon: '▤', type: 'segment3', name: 'Wrist Link', sub: 'Segment 3 — Distal', count: 8,
+      desc: 'Ultra-lightweight carbon tube with magnesium end rings. Designed for minimal rotational inertia to maximize wrist agility. Houses the wrist actuator cable conduit.',
+      purpose: 'Connects wrist to forearm joint with minimal inertia for agile end-effector motion.',
+      material: 'Toray T800 Carbon / AZ91D Mg', specs: '350mm · 9mm OD · 90g',
+      tags: ['Toray T800 Carbon', 'Roll Wrapped', 'AZ91D Mg Rings', 'Low-Inertia Design'] },
+    { cat: 'Structural', icon: '▤', type: 'segment4', name: 'Distal Link', sub: 'Segment 4 — Terminal', count: 8,
+      desc: 'Short carbon-fiber terminal link with integrated tool-side quick-change connector. Spring-loaded collet for hot-swap of end effectors with auto-latching.',
+      purpose: 'Final link before end effector features tool-side connector for hot-swap capability.',
+      material: 'Toray T700 Carbon / 17-4 PH Steel', specs: '280mm · 7.6mm OD · 55g',
+      tags: ['Toray T700 Carbon', '17-4 PH Steel Collet', 'Quick-Change Connector', 'Auto-Latching'] },
+    { cat: 'Actuation', icon: '●', type: 'shoulder', name: 'Shoulder Joint', sub: '2-DOF — Harmonic Drive', count: 8,
+      desc: 'High-torque dual-axis spherical joint using a custom harmonic drive transmission. Zero-backlash with crossed-roller bearings. Houses dual absolute encoders for position feedback.',
+      purpose: 'Primary arm articulation provides yaw and pitch for gross positioning with zero backlash.',
+      material: 'Harmonic Drive CSD-20 / Steel', specs: '2 DOF · ±180° / ±120° · 8 Nm · 210g',
+      tags: ['Harmonic Drive CSD-20', 'Crossed-Roller Bearing', 'ABS Encoder × 2', 'Backlash-Free'] },
+    { cat: 'Actuation', icon: '●', type: 'elbow', name: 'Elbow Joint', sub: '1-DOF — Planetary Gear', count: 8,
+      desc: 'Compact single-axis joint driven by a brushless DC motor with a 50:1 planetary gearbox. Integrated hall-effect sensors for commutation and a 14-bit magnetic encoder for position.',
+      purpose: 'Elbow flexion/extension for arm reach and payload positioning.',
+      material: 'T-Motor U8 BLDC / Steel gears', specs: '1 DOF · ±150° · 4 Nm · 80g',
+      tags: ['BLDC T-Motor U8', 'Planetary 50:1', '14-Bit Magnetic Encoder', 'Field-Oriented Control'] },
+    { cat: 'Actuation', icon: '●', type: 'wrist', name: 'Wrist Joint', sub: '1-DOF — Cable-Driven', count: 8,
+      desc: 'Miniature cable-driven wrist joint. A 6 mm BLDC motor at the forearm pulls a PTFE-lined Bowden cable to articulate the wrist. Enables very low distal mass for agile motion.',
+      purpose: 'Wrist flexion for end-effector orientation with minimal distal weight.',
+      material: '6mm BLDC / Ti pulley / PTFE', specs: '1 DOF · ±180° · 1.5 Nm · 45g',
+      tags: ['6 mm BLDC', 'PTFE-Bowden Cable', 'Titanium Pulley', 'Cable-Driven'] },
+    { cat: 'Actuation', icon: '●', type: 'forearm', name: 'Forearm Joint', sub: '1-DOF — Micro BLDC', count: 8,
+      desc: 'Micro-DOF pre-wrist joint using a custom 4 mm pager motor with a 128:1 reduction planetary stage. Provides fine orientation adjustment for precision alignment tasks.',
+      purpose: 'Additional DOF for complex orientations and precision alignment.',
+      material: '4mm Pager Motor / Brass bushing', specs: '1 DOF · ±135° · 0.8 Nm · 28g',
+      tags: ['4 mm Pager Motor', 'Planetary 128:1', 'Brass Sintered Bushing', 'Micro Precision'] },
+    { cat: 'Sensing', icon: '◉', type: 'dome', name: 'Sensor Dome', sub: 'Environment Perception', count: 1,
+      desc: 'Hemispherical sensor cluster with a 360° × 180° field of regard. Houses a 360° LIDAR, 4 × 5 MP global-shutter cameras, a 9-DOF IMU, and MEMS microphones for spatial audio.',
+      purpose: 'Environmental sensing, vision processing, and wireless communication relay.',
+      material: 'Polycarbonate / ABS / RF-transparent', specs: 'Dia 70mm · 6 DOF IMU · 5MP × 4',
+      tags: ['Ouster OS0-128 LIDAR', 'OV5640 Global Shutter', 'Sensor Fusion', '360° Coverage'] },
+    { cat: 'Tooling', icon: '⊞', type: 'end_effector', name: 'End Effector', sub: 'Interchangeable Tool Head', count: 8,
+      desc: 'Interchangeable tool head — precision gripper, vacuum cup, screwdriver, or micro-manipulator. Tool-side quick-change interface with auto-latching.',
+      purpose: 'Task-specific interaction with the environment. Hot-swappable design for rapid reconfiguration.',
+      material: 'Steel / Silicone / WC tips', specs: '< 50g each · Tool-side connector',
+      tags: ['Precision Gripper', 'Vacuum Cup', 'Screw Driver', 'Micro Manipulator'] },
+];
+
+let browserActive = false;
+let browserHighlighted = null;
+
+function focusComponentType(type) {
+    // Find all groups/meshes with this component type
+    const groups = [];
+    robotGroup.traverse(child => {
+        if (child.userData && child.userData.isComponent && child.userData.componentType === type) {
+            if (child.userData.name) groups.push(child); // This is a component group
+        }
+    });
+    
+    if (groups.length === 0) return;
+    
+    // Clear previous highlight
+    clearBrowserHighlight();
+    
+    // Highlight all
+    groups.forEach(g => {
+        g.traverse(child => {
+            if (child.isMesh && child.material) {
+                if (!child.userData._origEmissive) {
+                    child.userData._origEmissive = child.material.emissive ? child.material.emissive.clone() : null;
+                    child.userData._origEmissiveIntensity = child.material.emissiveIntensity;
+                }
+                child.material = child.material.clone();
+                child.material.emissive = new THREE.Color(0xc8956c);
+                child.material.emissiveIntensity = 0.35;
+            }
+        });
+    });
+    browserHighlighted = groups;
+    
+    // Focus camera on them
+    focusOnComponent(groups);
+}
+
+function clearBrowserHighlight() {
+    if (browserHighlighted) {
+        browserHighlighted.forEach(g => {
+            g.traverse(child => {
+                if (child.isMesh && child.material) {
+                    child.material.emissiveIntensity = 0;
+                }
+            });
+        });
+        browserHighlighted = null;
+    }
+}
+
+function showBrowserDetail(item) {
+    document.getElementById('browserListView').style.display = 'none';
+    document.getElementById('browserDetailView').style.display = 'block';
+    
+    document.getElementById('browserDetailIcon').textContent = item.icon;
+    document.getElementById('browserDetailName').textContent = item.name;
+    document.getElementById('browserDetailSub').textContent = item.sub || '';
+    document.getElementById('browserDetailBadge').textContent = item.count > 1 ? `${item.count} units across all arms` : 'Single unit';
+    document.getElementById('browserDetailDesc').textContent = item.desc;
+    document.getElementById('browserDetailPurpose').textContent = item.purpose;
+    document.getElementById('browserDetailMat').textContent = item.material;
+    document.getElementById('browserDetailSpecs').textContent = item.specs;
+    
+    const tagsEl = document.getElementById('browserDetailTags');
+    tagsEl.innerHTML = '';
+    (item.tags || []).forEach(tag => {
+        const span = document.createElement('span');
+        span.className = 'tech-tag';
+        span.textContent = tag;
+        tagsEl.appendChild(span);
+    });
+    
+    focusComponentType(item.type);
+}
+
+function buildBrowserList() {
+    const list = document.getElementById('browserList');
+    list.innerHTML = '';
+    let lastCat = '';
+    
+    browserData.forEach(item => {
+        if (item.cat !== lastCat) {
+            const catEl = document.createElement('div');
+            catEl.className = 'browser-cat';
+            catEl.textContent = item.cat;
+            list.appendChild(catEl);
+            lastCat = item.cat;
+        }
+        
+        const el = document.createElement('div');
+        el.className = 'browser-item';
+        el.dataset.type = item.type;
+        el.innerHTML = `
+            <div class="browser-item-icon">${item.icon}</div>
+            <span class="browser-item-name">${item.name}</span>
+            <span class="browser-item-count">${item.count > 1 ? `× ${item.count}` : ''}</span>
+        `;
+        el.addEventListener('click', () => {
+            document.querySelectorAll('.browser-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+            showBrowserDetail(item);
+        });
+        list.appendChild(el);
+    });
+}
+
+// Browser back button
+document.getElementById('browserBack').addEventListener('click', () => {
+    document.getElementById('browserDetailView').style.display = 'none';
+    document.getElementById('browserListView').style.display = 'block';
+});
+
+// Browser panel toggle
+document.getElementById('browserToggle').addEventListener('click', () => {
+    browserActive = !browserActive;
+    document.getElementById('browserPanel').classList.toggle('open', browserActive);
+    document.getElementById('browserToggle').classList.toggle('open', browserActive);
+    if (!browserActive) {
+        clearBrowserHighlight();
+        focusTarget = null;
+    }
+});
+document.getElementById('browserClose').addEventListener('click', () => {
+    browserActive = false;
+    document.getElementById('browserPanel').classList.remove('open');
+    document.getElementById('browserToggle').classList.remove('open');
+    clearBrowserHighlight();
+    focusTarget = null;
+});
+
+// Build browser on load
+buildBrowserList();
+
+// ============================================
+// VOICE CONTROL
+// ============================================
+let isListening = false;
+let recognition = null;
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+function showVoiceStatus(text, type) {
+    const el = document.getElementById('voiceStatus');
+    const dot = document.getElementById('voiceDot');
+    const txt = document.getElementById('voiceText');
+    txt.textContent = text;
+    dot.style.background = type === 'success' ? '#4ade80' : type === 'error' ? '#ef4444' : type === 'warn' ? '#f59e0b' : '#60a5fa';
+    el.style.display = 'flex';
+}
+
+function hideVoiceStatus() {
+    document.getElementById('voiceStatus').style.display = 'none';
+}
+
+function executeVoiceCommand(transcript) {
+    const lower = transcript.toLowerCase().trim();
+    
+    // Pose commands
+    const poseMap = { idle: 'idle', reach: 'reach', wave: 'wave', compact: 'compact', inspect: 'inspect' };
+    for (const [keyword, pose] of Object.entries(poseMap)) {
+        if (lower.includes(keyword)) {
+            const btn = document.querySelector(`[data-pose="${pose}"]`);
+            if (btn) { btn.click(); showVoiceStatus(`→ ${pose} pose`, 'success'); setTimeout(hideVoiceStatus, 2000); return; }
+        }
+    }
+    
+    // Walk / Stop
+    if (lower.includes('walk') || lower.includes('go')) {
+        const btn = document.querySelector('[data-pose="walk"]');
+        if (btn) { btn.click(); showVoiceStatus('→ Walk mode', 'success'); setTimeout(hideVoiceStatus, 2000); return; }
+    }
+    if (lower.includes('stop') || lower.includes('halt') || lower.includes('freeze')) {
+        const btn = document.querySelector('[data-pose="idle"]');
+        if (btn) { btn.click(); showVoiceStatus('→ Stopped', 'warn'); setTimeout(hideVoiceStatus, 2000); return; }
+    }
+    
+    // Direction (only works in walk mode)
+    if (currentPose === 'walk') {
+        if (lower.includes('forward') || lower.includes('forwards') || lower.includes('ahead')) {
+            keys.w = true; setTimeout(() => keys.w = false, 1500);
+            showVoiceStatus('→ Moving forward', 'success'); setTimeout(hideVoiceStatus, 1500); return;
+        }
+        if (lower.includes('back') || lower.includes('backward') || lower.includes('backwards') || lower.includes('reverse')) {
+            keys.s = true; setTimeout(() => keys.s = false, 1500);
+            showVoiceStatus('→ Moving backward', 'success'); setTimeout(hideVoiceStatus, 1500); return;
+        }
+        if (lower.includes('left')) {
+            keys.a = true; setTimeout(() => keys.a = false, 800);
+            showVoiceStatus('→ Turning left', 'success'); setTimeout(hideVoiceStatus, 1500); return;
+        }
+        if (lower.includes('right')) {
+            keys.d = true; setTimeout(() => keys.d = false, 800);
+            showVoiceStatus('→ Turning right', 'success'); setTimeout(hideVoiceStatus, 1500); return;
+        }
+    }
+    
+    // Speed
+    const speedMatch = lower.match(/speed\s*(\d+(?:\.\d+)?)/);
+    if (speedMatch) {
+        const val = Math.max(0.2, Math.min(3, parseFloat(speedMatch[1])));
+        document.getElementById('speedSlider').value = val;
+        document.getElementById('speedSlider').dispatchEvent(new Event('input'));
+        showVoiceStatus(`→ Speed ${val.toFixed(1)}`, 'success'); setTimeout(hideVoiceStatus, 2000); return;
+    }
+    if (lower.includes('faster') || lower.includes('speed up')) {
+        const slider = document.getElementById('speedSlider');
+        const val = Math.min(3, parseFloat(slider.value) + 0.5);
+        slider.value = val; slider.dispatchEvent(new Event('input'));
+        showVoiceStatus(`→ Speed ${val.toFixed(1)}`, 'success'); setTimeout(hideVoiceStatus, 2000); return;
+    }
+    if (lower.includes('slower') || lower.includes('speed down')) {
+        const slider = document.getElementById('speedSlider');
+        const val = Math.max(0.2, parseFloat(slider.value) - 0.5);
+        slider.value = val; slider.dispatchEvent(new Event('input'));
+        showVoiceStatus(`→ Speed ${val.toFixed(1)}`, 'success'); setTimeout(hideVoiceStatus, 2000); return;
+    }
+    
+    // Select component from browser
+    const compNames = {
+        base: 'base', body: 'body', dome: 'dome', 'sensor dome': 'dome',
+        shoulder: 'shoulder', 'upper arm': 'segment1', 'arm link': 'segment1',
+        elbow: 'elbow', forearm: 'segment2', 'forearm link': 'segment2',
+        wrist: 'wrist', 'wrist link': 'segment3',
+        'distal link': 'segment4', gripper: 'end_effector', 'end effector': 'end_effector',
+        vacuum: 'end_effector', screwdriver: 'end_effector', tool: 'end_effector',
+    };
+    for (const [keyword, type] of Object.entries(compNames)) {
+        if (lower.includes(keyword)) {
+            const item = browserData.find(d => d.type === type);
+            if (item) {
+                showBrowserDetail(item);
+                // Also open browser panel
+                if (!document.getElementById('browserPanel').classList.contains('open')) {
+                    document.getElementById('browserToggle').click();
+                }
+                showVoiceStatus(`→ Selected ${item.name}`, 'success');
+                setTimeout(hideVoiceStatus, 2500);
+                return;
+            }
+        }
+    }
+    
+    // Detach / Attach
+    if (lower.includes('detach') && selectedComponent) {
+        document.getElementById('compDetach').click();
+        showVoiceStatus('→ Detached', 'warn'); setTimeout(hideVoiceStatus, 2000); return;
+    }
+    if ((lower.includes('attach') || lower.includes('reattach')) && selectedComponent) {
+        document.getElementById('compAttach').click();
+        showVoiceStatus('→ Reattached', 'success'); setTimeout(hideVoiceStatus, 2000); return;
+    }
+    
+    // Flip mounting
+    if (lower.includes('flip')) {
+        document.querySelector('[data-mount="ceiling"]').click();
+        showVoiceStatus('→ Flipped', 'success'); setTimeout(hideVoiceStatus, 2000); return;
+    }
+    if (lower.includes('wall')) {
+        document.querySelector('[data-mount="wall"]').click();
+        showVoiceStatus('→ Wall mount', 'success'); setTimeout(hideVoiceStatus, 2000); return;
+    }
+    if (lower.includes('table')) {
+        document.querySelector('[data-mount="table"]').click();
+        showVoiceStatus('→ Table mount', 'success'); setTimeout(hideVoiceStatus, 2000); return;
+    }
+    
+    // Help
+    if (lower.includes('help') || lower.includes('commands') || lower.includes('what can')) {
+        showVoiceStatus('Poses: idle, reach, wave, compact, inspect, walk, stop · Direction: forward, back, left, right · Speed: faster, slower, speed 1.5 · Select: shoulder, elbow, base, gripper... · detach, attach, flip', 'info');
+        setTimeout(hideVoiceStatus, 8000);
+        return;
+    }
+    
+    showVoiceStatus(`Unrecognized: "${transcript}"`, 'error');
+    setTimeout(hideVoiceStatus, 3000);
+}
+
+function toggleVoiceControl() {
+    if (!SpeechRecognition) {
+        showVoiceStatus('Speech recognition not supported', 'error');
+        setTimeout(hideVoiceStatus, 3000);
+        return;
+    }
+    
+    if (isListening) {
+        if (recognition) recognition.stop();
+        isListening = false;
+        document.getElementById('micBtn').classList.remove('listening');
+        document.getElementById('micBtn').style.borderColor = 'var(--border)';
+        document.getElementById('micBtn').style.background = 'transparent';
+        hideVoiceStatus();
+        return;
+    }
+    
+    try {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        
+        recognition.onresult = (event) => {
+            const last = event.results.length - 1;
+            const transcript = event.results[last][0].transcript;
+            executeVoiceCommand(transcript);
+        };
+        
+        recognition.onerror = (event) => {
+            if (event.error === 'no-speech') return;
+            showVoiceStatus(`Error: ${event.error}`, 'error');
+            setTimeout(hideVoiceStatus, 3000);
+            isListening = false;
+            document.getElementById('micBtn').classList.remove('listening');
+            document.getElementById('micBtn').style.borderColor = 'var(--border)';
+            document.getElementById('micBtn').style.background = 'transparent';
+        };
+        
+        recognition.onend = () => {
+            if (isListening) {
+                try { recognition.start(); } catch(e) {}
+            }
+        };
+        
+        recognition.start();
+        isListening = true;
+        document.getElementById('micBtn').classList.add('listening');
+        document.getElementById('micBtn').style.borderColor = '#4ade80';
+        document.getElementById('micBtn').style.background = 'rgba(74,222,128,0.1)';
+        showVoiceStatus('Listening...', 'info');
+        setTimeout(hideVoiceStatus, 2000);
+    } catch (e) {
+        showVoiceStatus('Mic access denied or unavailable', 'error');
+        setTimeout(hideVoiceStatus, 3000);
+    }
+}
+
+document.getElementById('micBtn').addEventListener('click', toggleVoiceControl);
+
+// ============================================
+// JOINT ANGLE DISPLAY
+// ============================================
+let anglePanelOpen = false;
+const angleRows = [];
+
+function buildAngleTable() {
+    const tbody = document.getElementById('angleTableBody');
+    tbody.innerHTML = '';
+    angleRows.length = 0;
+    for (let i = 0; i < 8; i++) {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid rgba(0,0,0,0.04)';
+        const cells = ['', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0'];
+        const row = [];
+        cells.forEach((val, ci) => {
+            const td = document.createElement('td');
+            td.style.padding = '3px 8px';
+            td.style.textAlign = ci === 0 ? 'left' : 'right';
+            td.style.color = ci === 0 ? 'var(--text-2)' : 'var(--text)';
+            td.style.fontWeight = ci === 0 ? '500' : '400';
+            if (ci === 0) td.textContent = `${i + 1}`;
+            else td.textContent = '0.0°';
+            tr.appendChild(td);
+            row.push(td);
+        });
+        tbody.appendChild(tr);
+        angleRows.push(row);
+    }
+}
+
+function updateAngles() {
+    if (!anglePanelOpen) return;
+    arms.forEach((arm, i) => {
+        const row = angleRows[i];
+        const toDeg = (rad) => (rad * 180 / Math.PI).toFixed(1) + '°';
+        row[1].textContent = toDeg(arm.shoulder.rotation.y);
+        row[2].textContent = toDeg(arm.shoulder.rotation.z);
+        row[3].textContent = toDeg(arm.elbow.rotation.z);
+        row[4].textContent = toDeg(arm.wrist.rotation.z);
+        row[5].textContent = toDeg(arm.forearm.rotation.z);
+        row[6].textContent = toDeg(arm.eePivot.rotation.y);
+    });
+}
+
+document.getElementById('angleToggle').addEventListener('click', () => {
+    anglePanelOpen = !anglePanelOpen;
+    document.getElementById('anglePanel').style.display = anglePanelOpen ? 'block' : 'none';
+    const btn = document.getElementById('angleToggle');
+    btn.classList.toggle('active', anglePanelOpen);
+    btn.style.borderColor = anglePanelOpen ? 'var(--accent)' : 'var(--border)';
+    btn.style.color = anglePanelOpen ? 'var(--accent)' : 'var(--text-3)';
+    if (anglePanelOpen) updateAngles();
+});
+document.getElementById('angleClose').addEventListener('click', () => {
+    anglePanelOpen = false;
+    document.getElementById('anglePanel').style.display = 'none';
+    const btn = document.getElementById('angleToggle');
+    btn.classList.remove('active');
+    btn.style.borderColor = 'var(--border)';
+    btn.style.color = 'var(--text-3)';
+});
+
+buildAngleTable();
+
+// ============================================
+// ANIMATION LOOP
+// ============================================
+const clock = new THREE.Clock();
+
+function animate() {
+    requestAnimationFrame(animate);
+    
+    const t = clock.getElapsedTime();
+    const dt = clock.getDelta();
+    
+    // Pose transition
+    if (poseTransition < 1) {
+        poseTransition = Math.min(1, poseTransition + 0.015);
+    }
+    const transEase = 1 - Math.pow(1 - poseTransition, 3);
+    
+    arms.forEach((arm, i) => {
+        const p1 = poses[prevPose](i, t);
+        const p2 = poses[currentPose](i, t);
+        
+        const sy = lerp(p1.shoulderY, p2.shoulderY, transEase);
+        const sz = lerp(p1.shoulderZ, p2.shoulderZ, transEase);
+        const ez = lerp(p1.elbowZ, p2.elbowZ, transEase);
+        const wz = lerp(p1.wristZ, p2.wristZ, transEase);
+        const fz = lerp(p1.forearmZ, p2.forearmZ, transEase);
+        const ey = lerp(p1.eeY, p2.eeY, transEase);
+        
+        arm.shoulder.rotation.y = sy;
+        arm.shoulder.rotation.z = sz;
+        arm.elbow.rotation.z = ez;
+        arm.wrist.rotation.z = wz;
+        arm.forearm.rotation.z = fz;
+        arm.eePivot.rotation.y = ey;
+    });
+    
+    // Body movement when walking
+    if (currentPose === 'walk') {
+        // Raise robot up on its arms (low enough to reach floor, high enough to clear base)
+        robotGroup.position.y += (0.7 - robotGroup.position.y) * 0.03;
+        
+        let mx = 0, mz = 0;
+        if (keys.w || keys.arrowup) mz -= 1;
+        if (keys.s || keys.arrowdown) mz += 1;
+        if (keys.a || keys.arrowleft) mx -= 1;
+        if (keys.d || keys.arrowright) mx += 1;
+        
+        if (mx !== 0 || mz !== 0) {
+            const len = Math.sqrt(mx * mx + mz * mz);
+            mx /= len;
+            mz /= len;
+            
+            const targetAngle = Math.atan2(mx, mz);
+            let diff = targetAngle - robotGroup.rotation.y;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            robotGroup.rotation.y += diff * 0.06;
+            
+            const spd = 0.03 * walkSpeed;
+            robotGroup.position.x += mx * spd;
+            robotGroup.position.z += mz * spd;
+        }
+        
+        // Body bob — weight shift as arms step
+        const bobPhase = t * walkSpeed * 2;
+        bodyGroup.position.y = 0.02 + (0.5 + 0.5 * Math.sin(bobPhase)) * 0.04;
+        
+        // Camera follows robot
+        controls.target.x += (robotGroup.position.x - controls.target.x) * 0.015;
+        controls.target.z += (robotGroup.position.z - controls.target.z) * 0.015;
+    } else {
+        // Settle back to ground when not walking
+        robotGroup.position.y += (0 - robotGroup.position.y) * 0.02;
+        
+        // Subtle body hover
+        bodyGroup.position.y = 0.02 + Math.sin(t * 0.5) * 0.008;
+    }
+    
+    // Update joint angle display
+    updateAngles();
+    
+    // Gentle camera drift
+    const driftX = Math.sin(t * 0.08) * 0.15;
+    const driftY = Math.cos(t * 0.06) * 0.1;
+    camera.position.x += (6 + driftX - camera.position.x) * 0.002;
+    camera.position.y += (5.5 + driftY - camera.position.y) * 0.002;
+    
+    // Camera focus animation
+    applyFocus();
+    
+    controls.update();
+    renderer.render(scene, camera);
+}
+
+// ============================================
+// RESIZE
+// ============================================
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ============================================
+// LOADING
+// ============================================
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        document.getElementById('loading').classList.add('hidden');
+    }, 800);
+});
+
+animate();
+</script>
+</body>
+</html>
