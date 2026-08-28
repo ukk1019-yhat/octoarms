@@ -1978,7 +1978,12 @@ const dpad = document.getElementById('mobileDpad');
 dpad.addEventListener('pointerdown', (e) => {
     if (e.target.classList.contains('dpad-btn')) {
         const dir = e.target.dataset.di;
-        if (dir !== 'none' && dir) keys[dir] = true;
+        if (dir !== 'none' && dir) {
+            if (currentPose !== 'walk') {
+                document.querySelector('[data-pose="walk"]').click();
+            }
+            keys[dir] = true;
+        }
         e.target.releasePointerCapture(e.pointerId);
     }
 });
