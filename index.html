@@ -2008,6 +2008,29 @@ dpad.addEventListener('pointerleave', (e) => {
 // Prevent the pointer events from rotating the camera
 dpad.addEventListener('pointerdown', (e) => e.stopPropagation(), true);
 
+// Fallback for browsers without Pointer Events (older webviews)
+if (!window.PointerEvent) {
+    const setKey = (t, val) => {
+        const dir = t.target.dataset.di;
+        if (dir !== 'none' && dir) {
+            if (currentPose !== 'walk') document.querySelector('[data-pose="walk"]').click();
+            keys[dir] = val;
+        }
+    };
+    dpad.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        setKey(e.touches[0] || e.target, true);
+    }, { passive: false });
+    dpad.addEventListener('touchend', (e) => {
+        const t = { target: e.target };
+        setKey(t, false);
+    });
+    dpad.addEventListener('touchcancel', (e) => {
+        const t = { target: e.target };
+        setKey(t, false);
+    });
+}
+
 // ============================================
 // COMPONENT SELECTION & DETACH
 // ============================================
