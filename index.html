@@ -2062,8 +2062,19 @@ for (let i = 0; i < armCount; i++) {
 }
 
 // ============================================
-// SPACE SCENE INITIALIZATION
+// SPACE SCENE VARIABLES & INITIALIZATION
 // ============================================
+let spaceMode = false;
+let starField = null;
+let earthMesh = null;
+let satelliteGroup = null;
+let satelliteSolarL = null;
+let satelliteSolarR = null;
+let satelliteAntenna = null;
+let satellitePanel = null;
+let satelliteShield = null;
+let orbitalRing = null;
+
 createStarField();
 createEarth();
 createOrbitalRing();
@@ -2971,7 +2982,6 @@ document.getElementById('micBtn').addEventListener('click', toggleVoiceControl);
 // ============================================
 // SPACE MODE SYSTEM
 // ============================================
-let spaceMode = false;
 let missionActive = false;
 let missionStartTime = 0;
 let missionElapsed = 0;
@@ -2996,17 +3006,6 @@ const teleop = {
     connected: true,
     mode: 'DIRECT',
 };
-
-// Space objects
-let starField = null;
-let earthMesh = null;
-let satelliteGroup = null;
-let satelliteSolarL = null;
-let satelliteSolarR = null;
-let satelliteAntenna = null;
-let satellitePanel = null;
-let satelliteShield = null;
-let orbitalRing = null;
 
 // ---- CREATE SPACE ENVIRONMENT ----
 function createStarField() {
