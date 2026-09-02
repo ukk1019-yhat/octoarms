@@ -819,6 +819,193 @@
             .mobile-dpad { transform: scale(0.82); transform-origin: bottom right; }
             .mobile-dpad { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); right: 8px; }
         }
+
+        /* ---- SPACE MODE ---- */
+        .space-toggle {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            border: 1.5px solid rgba(100,140,200,0.4);
+            background: rgba(40,60,100,0.15);
+            color: #5a8ac0;
+            transition: all 0.3s ease;
+        }
+        .space-toggle:hover { background: rgba(40,60,100,0.25); border-color: #5a8ac0; }
+        .space-toggle.active {
+            background: rgba(40,80,160,0.2);
+            border-color: #4a90d9;
+            color: #4a90d9;
+            box-shadow: 0 0 12px rgba(74,144,217,0.15);
+        }
+
+        /* Mission Panel */
+        .mission-panel {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            background: rgba(10,14,28,0.88);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(74,144,217,0.25);
+            border-radius: 12px;
+            padding: 14px 20px;
+            display: none;
+            gap: 12px;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            color: #8ab4f0;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+        }
+        .mission-panel.visible { display: flex; }
+        .mission-stat {
+            text-align: center;
+            padding: 0 12px;
+            border-right: 1px solid rgba(74,144,217,0.15);
+        }
+        .mission-stat:last-child { border-right: none; }
+        .mission-stat-label {
+            font-size: 0.5rem;
+            color: rgba(138,180,240,0.5);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .mission-stat-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #8ab4f0;
+        }
+        .mission-stat-value.green { color: #4ade80; }
+        .mission-stat-value.amber { color: #f59e0b; }
+        .mission-stat-value.red { color: #ef4444; }
+
+        /* Teleoperation Status */
+        .teleop-panel {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            background: rgba(10,14,28,0.88);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(74,144,217,0.25);
+            border-radius: 10px;
+            padding: 10px 16px;
+            display: none;
+            align-items: center;
+            gap: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            color: #8ab4f0;
+            font-size: 0.6rem;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+        }
+        .teleop-panel.visible { display: flex; }
+        .teleop-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        .teleop-dot.latency { background: #f59e0b; }
+        .teleop-dot.disconnected { background: #ef4444; }
+
+        /* Satellite Info Panel */
+        .sat-panel {
+            position: fixed;
+            top: 80px;
+            right: 28px;
+            width: 280px;
+            z-index: 20;
+            background: rgba(10,14,28,0.88);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(74,144,217,0.25);
+            border-radius: 12px;
+            padding: 16px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            color: #8ab4f0;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+        }
+        .sat-panel.visible { display: flex; }
+        .sat-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #a0c4f8;
+        }
+        .sat-sub {
+            font-size: 0.55rem;
+            color: rgba(138,180,240,0.5);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .sat-task {
+            padding: 8px 10px;
+            border-radius: 6px;
+            background: rgba(74,144,217,0.08);
+            border: 1px solid rgba(74,144,217,0.15);
+            font-size: 0.65rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sat-task-status {
+            font-size: 0.55rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .sat-task-status.pending { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .sat-task-status.active { background: rgba(74,222,128,0.15); color: #4ade80; }
+        .sat-task-status.done { background: rgba(138,180,240,0.1); color: rgba(138,180,240,0.5); }
+
+        /* Score popup */
+        @keyframes scorePopup {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-40px) scale(1.3); }
+        }
+        .score-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 200;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4ade80;
+            text-shadow: 0 0 20px rgba(74,222,128,0.5);
+            pointer-events: none;
+            animation: scorePopup 1.2s ease-out forwards;
+        }
+
+        /* Space mode body theme */
+        body.space-mode { --bg: #080c18; --text: #c8daf0; --text-2: #8ab4f0; --text-3: rgba(138,180,240,0.5); --surface: #0e1428; --border: rgba(74,144,217,0.2); }
+        body.space-mode .loading-screen { background: #080c18; }
+        body.space-mode .brand-title { color: #c8daf0; }
+        body.space-mode .panel-card { background: rgba(14,20,40,0.85); border-color: rgba(74,144,217,0.2); }
+        body.space-mode .panel-card:hover { background: rgba(20,28,52,0.92); }
+        body.space-mode .pose-bar { background: rgba(14,20,40,0.85); border-color: rgba(74,144,217,0.2); }
+        body.space-mode .pose-btn { color: rgba(138,180,240,0.6); }
+        body.space-mode .pose-btn:hover { color: #8ab4f0; }
+        body.space-mode .pose-btn.active { background: rgba(74,144,217,0.3); color: #a0c4f8; }
+        body.space-mode .browser-toggle { background: rgba(14,20,40,0.85); border-color: rgba(74,144,217,0.2); color: rgba(138,180,240,0.5); }
+        body.space-mode .browser-panel { background: rgba(10,14,28,0.96); border-right-color: rgba(74,144,217,0.2); }
+        body.space-mode .browser-item:hover { background: rgba(74,144,217,0.05); }
+        body.space-mode .browser-item.active { border-color: #4a90d9; background: rgba(74,144,217,0.1); }
+        body.space-mode .spec-value, body.space-mode .tech-value { color: #8ab4f0; }
+        body.space-mode .spec-label, body.space-mode .tech-label { color: rgba(138,180,240,0.4); }
+        body.space-mode .controls-hint { color: rgba(138,180,240,0.3); }
+        body.space-mode .ee-icon { background: linear-gradient(135deg, #1a2440, #141e35); }
+        body.space-mode .mount-icon { background: linear-gradient(135deg, #1a2440, #141e35); }
+        body.space-mode .mobile-dpad .dpad-btn { background: rgba(14,20,40,0.85); border-color: rgba(74,144,217,0.3); color: rgba(138,180,240,0.6); }
     </style>
 </head>
 <body>
@@ -827,6 +1014,7 @@
 <div class="loading-screen" id="loading">
     <div class="loading-ring"></div>
     <div class="loading-text">INITIALIZING OCTOARMS...</div>
+    <div class="loading-text" style="margin-top:8px;font-size:0.55rem;opacity:0.5;">SPACE DEFENSE SIMULATION READY</div>
 </div>
 
 <!-- 3D Canvas -->
@@ -845,6 +1033,7 @@
             <div style="display:flex;align-items:center;gap:8px;">
                 <span class="status-dot"></span>
                         <span class="font-mono" style="font-size:0.6rem;color:var(--text-3);letter-spacing:0.08em;">SYSTEM ONLINE</span>
+                        <button id="spaceModeBtn" class="space-toggle">SPACE MODE</button>
                         <button id="micBtn" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.3s ease;font-size:0.8rem;color:var(--text-3);" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="if(!this.classList.contains('listening'))this.style.borderColor='var(--border)'">🎤</button>
             </div>
         </div>
@@ -1090,11 +1279,73 @@
     </div>
 
     <!-- Controls Hint -->
-    <div class="controls-hint anim-fade d7">
+    <div class="controls-hint anim-fade d7" id="controlsHint">
         <div>DRAG to rotate</div>
         <div>SCROLL to zoom</div>
         <div>RIGHT-CLICK to pan</div>
-        <div style="margin-top:6px;opacity:0.5;">WASD to walk</div>
+        <div style="margin-top:6px;opacity:0.5;">WASD to move</div>
+        <div id="controlsHintSpace" style="display:none;opacity:0.5;">Q/E to ascend/descend</div>
+    </div>
+
+    <!-- SPACE MODE: Mission Panel -->
+    <div class="mission-panel" id="missionPanel">
+        <div class="mission-stat">
+            <div class="mission-stat-label">Mission</div>
+            <div class="mission-stat-value" id="missionName">SATELLITE REPAIR</div>
+        </div>
+        <div class="mission-stat">
+            <div class="mission-stat-label">Time</div>
+            <div class="mission-stat-value" id="missionTime">00:00</div>
+        </div>
+        <div class="mission-stat">
+            <div class="mission-stat-label">Tasks</div>
+            <div class="mission-stat-value green" id="missionTasks">0/4</div>
+        </div>
+        <div class="mission-stat">
+            <div class="mission-stat-label">Score</div>
+            <div class="mission-stat-value amber" id="missionScore">0</div>
+        </div>
+        <div class="mission-stat">
+            <div class="mission-stat-label">Fuel</div>
+            <div class="mission-stat-value" id="missionFuel">100%</div>
+        </div>
+    </div>
+
+    <!-- SPACE MODE: Satellite Panel -->
+    <div class="sat-panel" id="satPanel">
+        <div class="sat-title">Satellite: GSAT-7X</div>
+        <div class="sat-sub">Orbit: LEO 408 km · Status: Degraded</div>
+        <div style="margin-top:6px;">
+            <div class="sat-task" data-task="solar">
+                <span>🔧 Solar Panel Realignment</span>
+                <span class="sat-task-status pending" id="taskSolar">PENDING</span>
+            </div>
+            <div class="sat-task" data-task="antenna" style="margin-top:6px;">
+                <span>📡 Antenna Reflector Repair</span>
+                <span class="sat-task-status pending" id="taskAntenna">PENDING</span>
+            </div>
+            <div class="sat-task" data-task="circuit" style="margin-top:6px;">
+                <span>⚡ Circuit Board Replacement</span>
+                <span class="sat-task-status pending" id="taskCircuit">PENDING</span>
+            </div>
+            <div class="sat-task" data-task="debris" style="margin-top:6px;">
+                <span>🛡️ Debris Shield Patching</span>
+                <span class="sat-task-status pending" id="taskDebris">PENDING</span>
+            </div>
+        </div>
+        <button id="startMissionBtn" style="margin-top:10px;width:100%;padding:8px 0;border-radius:8px;font-size:0.7rem;font-weight:700;font-family:'JetBrains Mono',monospace;cursor:pointer;border:1px solid #4a90d9;background:rgba(74,144,217,0.15);color:#8ab4f0;letter-spacing:0.08em;transition:all 0.2s;" onmouseover="this.style.background='rgba(74,144,217,0.3)'" onmouseout="this.style.background='rgba(74,144,217,0.15)'">▶ BEGIN MISSION</button>
+    </div>
+
+    <!-- SPACE MODE: Teleoperation Panel -->
+    <div class="teleop-panel" id="teleopPanel">
+        <div class="teleop-dot" id="teleopDot"></div>
+        <span id="teleopStatus">TELEOP: NOMINAL</span>
+        <span style="opacity:0.4;">|</span>
+        <span>LATENCY: <span id="teleopLatency" style="color:#f59e0b;">0ms</span></span>
+        <span style="opacity:0.4;">|</span>
+        <span>BANDWIDTH: <span id="teleopBandwidth" style="color:#4ade80;">42 Mbps</span></span>
+        <span style="opacity:0.4;">|</span>
+        <span>MODE: <span id="teleopMode" style="color:#8ab4f0;">DIRECT</span></span>
     </div>
 </div>
 
@@ -1811,6 +2062,14 @@ for (let i = 0; i < armCount; i++) {
 }
 
 // ============================================
+// SPACE SCENE INITIALIZATION
+// ============================================
+createStarField();
+createEarth();
+createOrbitalRing();
+createSatellite();
+
+// ============================================
 // POSE SYSTEM
 // ============================================
 let currentPose = 'idle';
@@ -1938,7 +2197,7 @@ document.querySelectorAll('.mount-item').forEach(item => {
 // WALK CONTROLS
 // ============================================
 let walkSpeed = 1.5;
-const keys = { w: false, a: false, s: false, d: false, arrowup: false, arrowdown: false, arrowleft: false, arrowright: false };
+const keys = { w: false, a: false, s: false, d: false, q: false, e: false, arrowup: false, arrowdown: false, arrowleft: false, arrowright: false };
 
 window.addEventListener('keydown', (e) => {
     switch (e.code) {
@@ -1946,6 +2205,8 @@ window.addEventListener('keydown', (e) => {
         case 'KeyA': keys.a = true; e.preventDefault(); break;
         case 'KeyS': keys.s = true; e.preventDefault(); break;
         case 'KeyD': keys.d = true; e.preventDefault(); break;
+        case 'KeyQ': keys.q = true; e.preventDefault(); break;
+        case 'KeyE': keys.e = true; e.preventDefault(); break;
         case 'ArrowUp': keys.arrowup = true; e.preventDefault(); break;
         case 'ArrowDown': keys.arrowdown = true; e.preventDefault(); break;
         case 'ArrowLeft': keys.arrowleft = true; e.preventDefault(); break;
@@ -1958,6 +2219,8 @@ window.addEventListener('keyup', (e) => {
         case 'KeyA': keys.a = false; e.preventDefault(); break;
         case 'KeyS': keys.s = false; e.preventDefault(); break;
         case 'KeyD': keys.d = false; e.preventDefault(); break;
+        case 'KeyQ': keys.q = false; e.preventDefault(); break;
+        case 'KeyE': keys.e = false; e.preventDefault(); break;
         case 'ArrowUp': keys.arrowup = false; e.preventDefault(); break;
         case 'ArrowDown': keys.arrowdown = false; e.preventDefault(); break;
         case 'ArrowLeft': keys.arrowleft = false; e.preventDefault(); break;
@@ -1966,6 +2229,7 @@ window.addEventListener('keyup', (e) => {
 });
 window.addEventListener('blur', () => {
     for (const k in keys) keys[k] = false;
+    dpadReleaseAll();
 });
 
 document.getElementById('speedSlider').addEventListener('input', (e) => {
@@ -2613,9 +2877,31 @@ function executeVoiceCommand(transcript) {
     
     // Help
     if (lower.includes('help') || lower.includes('commands') || lower.includes('what can')) {
-        showVoiceStatus('Poses: idle, reach, wave, compact, inspect, walk, stop · Direction: forward, back, left, right · Speed: faster, slower, speed 1.5 · Select: shoulder, elbow, base, gripper... · detach, attach, flip', 'info');
+        showVoiceStatus('Poses: idle, reach, wave, compact, inspect, walk, stop, repair, dock, freefloat · Direction: forward, back, left, right, up, down · Speed: faster, slower, speed 1.5 · Select: shoulder, elbow, base, gripper... · detach, attach, flip · space: toggle space mode, begin mission', 'info');
         setTimeout(hideVoiceStatus, 8000);
         return;
+    }
+    
+    // Space mode commands
+    if (lower.includes('space') || lower.includes('outer space') || lower.includes('orbit')) {
+        document.getElementById('spaceModeBtn').click();
+        showVoiceStatus('→ Space mode toggled', 'success'); setTimeout(hideVoiceStatus, 2000); return;
+    }
+    if (lower.includes('mission') || lower.includes('start mission') || lower.includes('begin mission')) {
+        document.getElementById('startMissionBtn').click();
+        showVoiceStatus('→ Mission toggled', 'success'); setTimeout(hideVoiceStatus, 2000); return;
+    }
+    
+    // Vertical movement in zero-g
+    if (spaceMode && currentPose !== 'walk') {
+        if (lower.includes('up') || lower.includes('ascend')) {
+            keys.q = true; setTimeout(() => keys.q = false, 1500);
+            showVoiceStatus('→ Moving up', 'success'); setTimeout(hideVoiceStatus, 1500); return;
+        }
+        if (lower.includes('down') || lower.includes('descend')) {
+            keys.e = true; setTimeout(() => keys.e = false, 1500);
+            showVoiceStatus('→ Moving down', 'success'); setTimeout(hideVoiceStatus, 1500); return;
+        }
     }
     
     showVoiceStatus(`Unrecognized: "${transcript}"`, 'error');
@@ -2681,6 +2967,639 @@ function toggleVoiceControl() {
 }
 
 document.getElementById('micBtn').addEventListener('click', toggleVoiceControl);
+
+// ============================================
+// SPACE MODE SYSTEM
+// ============================================
+let spaceMode = false;
+let missionActive = false;
+let missionStartTime = 0;
+let missionElapsed = 0;
+let missionScore = 0;
+let missionFuel = 100;
+let missionTasksCompleted = 0;
+const totalMissionTasks = 4;
+
+// Zero-g physics state
+const zeroG = {
+    velocity: new THREE.Vector3(),
+    angularVelocity: new THREE.Vector3(),
+    damping: 0.98,
+    angularDamping: 0.96,
+};
+
+// Teleoperation state
+const teleop = {
+    latency: 0,
+    targetLatency: 640,
+    bandwidth: 42,
+    connected: true,
+    mode: 'DIRECT',
+};
+
+// Space objects
+let starField = null;
+let earthMesh = null;
+let satelliteGroup = null;
+let satelliteSolarL = null;
+let satelliteSolarR = null;
+let satelliteAntenna = null;
+let satellitePanel = null;
+let satelliteShield = null;
+let orbitalRing = null;
+
+// ---- CREATE SPACE ENVIRONMENT ----
+function createStarField() {
+    const geo = new THREE.BufferGeometry();
+    const count = 3000;
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const sizes = new Float32Array(count);
+    for (let i = 0; i < count; i++) {
+        const r = 30 + Math.random() * 50;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+        positions[i * 3 + 2] = r * Math.cos(phi);
+        const brightness = 0.5 + Math.random() * 0.5;
+        colors[i * 3] = brightness;
+        colors[i * 3 + 1] = brightness;
+        colors[i * 3 + 2] = brightness + Math.random() * 0.2;
+        sizes[i] = 0.08 + Math.random() * 0.15;
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    const mat = new THREE.PointsMaterial({ size: 0.12, vertexColors: true, transparent: true, opacity: 0.9, sizeAttenuation: true });
+    starField = new THREE.Points(geo, mat);
+    starField.visible = false;
+    scene.add(starField);
+}
+
+function createEarth() {
+    const earthGeo = new THREE.SphereGeometry(8, 64, 64);
+    const earthCanvas = document.createElement('canvas');
+    earthCanvas.width = 1024;
+    earthCanvas.height = 512;
+    const ctx = earthCanvas.getContext('2d');
+
+    // Ocean
+    ctx.fillStyle = '#0a3d6b';
+    ctx.fillRect(0, 0, 1024, 512);
+
+    // Continents (simplified)
+    ctx.fillStyle = '#1a6b3a';
+    // North America
+    ctx.beginPath(); ctx.ellipse(220, 150, 90, 70, -0.3, 0, Math.PI * 2); ctx.fill();
+    // South America
+    ctx.beginPath(); ctx.ellipse(300, 310, 50, 80, 0.2, 0, Math.PI * 2); ctx.fill();
+    // Europe/Africa
+    ctx.beginPath(); ctx.ellipse(530, 160, 45, 50, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(540, 300, 55, 65, 0, 0, Math.PI * 2); ctx.fill();
+    // Asia
+    ctx.beginPath(); ctx.ellipse(700, 170, 110, 60, 0, 0, Math.PI * 2); ctx.fill();
+    // Australia
+    ctx.beginPath(); ctx.ellipse(820, 340, 40, 30, 0.2, 0, Math.PI * 2); ctx.fill();
+
+    // Ice caps
+    ctx.fillStyle = '#d0e8f0';
+    ctx.fillRect(0, 0, 1024, 30);
+    ctx.fillRect(0, 482, 1024, 30);
+
+    // Clouds
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    for (let i = 0; i < 60; i++) {
+        ctx.beginPath();
+        ctx.ellipse(Math.random() * 1024, Math.random() * 512, 30 + Math.random() * 60, 10 + Math.random() * 20, Math.random() * Math.PI, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    const earthTex = new THREE.CanvasTexture(earthCanvas);
+    const earthMat = new THREE.MeshStandardMaterial({ map: earthTex, emissive: 0x0a3d6b, emissiveIntensity: 0.08 });
+    earthMesh = new THREE.Mesh(earthGeo, earthMat);
+    earthMesh.position.set(0, -22, 30);
+    earthMesh.visible = false;
+    scene.add(earthMesh);
+
+    // Atmosphere glow
+    const atmoGeo = new THREE.SphereGeometry(8.3, 64, 64);
+    const atmoMat = new THREE.MeshBasicMaterial({ color: 0x4a90d9, transparent: true, opacity: 0.08, side: THREE.BackSide });
+    const atmo = new THREE.Mesh(atmoGeo, atmoMat);
+    atmo.position.copy(earthMesh.position);
+    atmo.visible = false;
+    earthMesh.atmo = atmo;
+    scene.add(atmo);
+}
+
+function createOrbitalRing() {
+    const curve = new THREE.EllipseCurve(0, 0, 18, 18, 0, Math.PI * 2, false, 0);
+    const points = curve.getPoints(128);
+    const geo = new THREE.BufferGeometry().setFromPoints(points.map(p => new THREE.Vector3(p.x, 0, p.y)));
+    const mat = new THREE.LineBasicMaterial({ color: 0x4a90d9, transparent: true, opacity: 0.15 });
+    orbitalRing = new THREE.Line(geo, mat);
+    orbitalRing.visible = false;
+    scene.add(orbitalRing);
+}
+
+function createSatellite() {
+    satelliteGroup = new THREE.Group();
+    satelliteGroup.visible = false;
+
+    // Main body (bus)
+    const busGeo = new THREE.BoxGeometry(1.2, 0.8, 1.0);
+    const busMat = new THREE.MeshPhysicalMaterial({ color: 0xc0c0c5, roughness: 0.3, metalness: 0.8 });
+    const bus = new THREE.Mesh(busGeo, busMat);
+    bus.castShadow = true;
+    satelliteGroup.add(bus);
+
+    // Top panel (thermal blanket)
+    const topGeo = new THREE.BoxGeometry(1.1, 0.04, 0.9);
+    const topMat = new THREE.MeshPhysicalMaterial({ color: 0xd4af37, roughness: 0.2, metalness: 0.6, emissive: 0x332200, emissiveIntensity: 0.05 });
+    const topPlate = new THREE.Mesh(topGeo, topMat);
+    topPlate.position.y = 0.42;
+    satelliteGroup.add(topPlate);
+
+    // Solar panel LEFT
+    satelliteSolarL = new THREE.Group();
+    const solarGeo = new THREE.BoxGeometry(2.0, 0.03, 1.2);
+    const solarMat = new THREE.MeshPhysicalMaterial({ color: 0x1a2a5a, roughness: 0.15, metalness: 0.7, emissive: 0x0a1a4a, emissiveIntensity: 0.05 });
+    const solarPanelL = new THREE.Mesh(solarGeo, solarMat);
+    solarPanelL.castShadow = true;
+    satelliteSolarL.add(solarPanelL);
+    // Solar cell grid lines
+    for (let i = -4; i <= 4; i++) {
+        const lineGeo = new THREE.BoxGeometry(0.005, 0.035, 1.2);
+        const lineMat = new THREE.MeshBasicMaterial({ color: 0x3a4a7a });
+        const line = new THREE.Mesh(lineGeo, lineMat);
+        line.position.x = i * 0.22;
+        satelliteSolarL.add(line);
+    }
+    for (let i = -2; i <= 2; i++) {
+        const lineGeo = new THREE.BoxGeometry(2.0, 0.035, 0.005);
+        const lineMat = new THREE.MeshBasicMaterial({ color: 0x3a4a7a });
+        const line = new THREE.Mesh(lineGeo, lineMat);
+        line.position.z = i * 0.28;
+        satelliteSolarL.add(line);
+    }
+    // Solar arm
+    const armGeo = new THREE.CylinderGeometry(0.03, 0.03, 1.0, 8);
+    const armMat = new THREE.MeshPhysicalMaterial({ color: 0x888890, roughness: 0.4, metalness: 0.7 });
+    const solarArmL = new THREE.Mesh(armGeo, armMat);
+    solarArmL.rotation.z = Math.PI / 2;
+    solarArmL.position.x = -0.5;
+    satelliteSolarL.add(solarArmL);
+    satelliteSolarL.position.x = -2.2;
+    satelliteSolarL.position.y = 0.1;
+    satelliteGroup.add(satelliteSolarL);
+
+    // Solar panel RIGHT
+    satelliteSolarR = satelliteSolarL.clone();
+    satelliteSolarR.position.x = 2.2;
+    satelliteGroup.add(satelliteSolarR);
+
+    // Antenna dish
+    satelliteAntenna = new THREE.Group();
+    const dishGeo = new THREE.SphereGeometry(0.35, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+    const dishMat = new THREE.MeshPhysicalMaterial({ color: 0xe0e0e5, roughness: 0.15, metalness: 0.9 });
+    const dish = new THREE.Mesh(dishGeo, dishMat);
+    dish.rotation.x = -Math.PI / 2;
+    dish.castShadow = true;
+    satelliteAntenna.add(dish);
+    // Feed horn
+    const hornGeo = new THREE.CylinderGeometry(0.015, 0.01, 0.2, 6);
+    const hornMat = new THREE.MeshPhysicalMaterial({ color: 0xc8956c, roughness: 0.2, metalness: 0.9 });
+    const horn = new THREE.Mesh(hornGeo, hornMat);
+    horn.position.y = 0.15;
+    satelliteAntenna.add(horn);
+    // Antenna arm
+    const antArmGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.4, 8);
+    const antArm = new THREE.Mesh(antArmGeo, armMat);
+    antArm.position.y = -0.2;
+    satelliteAntenna.add(antArm);
+    satelliteAntenna.position.set(0, 0.6, 0.3);
+    satelliteGroup.add(satelliteAntenna);
+
+    // Service panel (circuit board access)
+    satellitePanel = new THREE.Group();
+    const panelGeo = new THREE.BoxGeometry(0.5, 0.4, 0.05);
+    const panelMat = new THREE.MeshPhysicalMaterial({ color: 0x2a5a2a, roughness: 0.4, metalness: 0.5 });
+    const panel = new THREE.Mesh(panelGeo, panelMat);
+    satellitePanel.add(panel);
+    // Panel detail - chips
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 2; j++) {
+            const chipGeo = new THREE.BoxGeometry(0.08, 0.06, 0.02);
+            const chipMat = new THREE.MeshPhysicalMaterial({ color: 0x1a1a22, roughness: 0.3, metalness: 0.8 });
+            const chip = new THREE.Mesh(chipGeo, chipMat);
+            chip.position.set(-0.12 + i * 0.14, -0.08 + j * 0.16, 0.03);
+            satellitePanel.add(chip);
+        }
+    }
+    // Panel cover (can be opened)
+    const coverGeo = new THREE.BoxGeometry(0.52, 0.42, 0.02);
+    const coverMat = new THREE.MeshPhysicalMaterial({ color: 0xa0a0a5, roughness: 0.3, metalness: 0.7 });
+    const cover = new THREE.Mesh(coverGeo, coverMat);
+    cover.position.z = 0.04;
+    satellitePanel.add(cover);
+    satellitePanel.position.set(0.4, 0, -0.52);
+    satelliteGroup.add(satellitePanel);
+
+    // Debris shield (whipple shield)
+    satelliteShield = new THREE.Group();
+    const shieldGeo = new THREE.BoxGeometry(0.8, 0.6, 0.06);
+    const shieldMat = new THREE.MeshPhysicalMaterial({ color: 0x8888a0, roughness: 0.5, metalness: 0.6 });
+    const shield = new THREE.Mesh(shieldGeo, shieldMat);
+    satelliteShield.add(shield);
+    // Impact marks
+    for (let i = 0; i < 3; i++) {
+        const markGeo = new THREE.CircleGeometry(0.03 + Math.random() * 0.04, 8);
+        const markMat = new THREE.MeshBasicMaterial({ color: 0x333340 });
+        const mark = new THREE.Mesh(markGeo, markMat);
+        mark.position.set(-0.2 + Math.random() * 0.4, -0.15 + Math.random() * 0.3, 0.035);
+        satelliteShield.add(mark);
+    }
+    satelliteShield.position.set(-0.3, -0.2, -0.52);
+    satelliteGroup.add(satelliteShield);
+
+    satelliteGroup.position.set(0, 1.5, -3);
+    satelliteGroup.rotation.y = 0.3;
+    scene.add(satelliteGroup);
+}
+
+// ---- SPACE MODE TOGGLE ----
+document.getElementById('spaceModeBtn').addEventListener('click', () => {
+    spaceMode = !spaceMode;
+    document.getElementById('spaceModeBtn').classList.toggle('active', spaceMode);
+    document.body.classList.toggle('space-mode', spaceMode);
+
+    if (spaceMode) {
+        // Enter space mode
+        scene.background = new THREE.Color(0x050810);
+        scene.fog = new THREE.Fog(0x050810, 40, 80);
+
+        // Show space objects
+        if (starField) starField.visible = true;
+        if (earthMesh) { earthMesh.visible = true; earthMesh.atmo.visible = true; }
+        if (orbitalRing) orbitalRing.visible = true;
+        if (satelliteGroup) satelliteGroup.visible = true;
+
+        // Hide floor/grid
+        floor.visible = false;
+        shadowCatcher.visible = false;
+        gridHelper.visible = false;
+
+        // Adjust lighting for space
+        ambientLight.color.set(0x1a2040);
+        ambientLight.intensity = 0.3;
+        keyLight.color.set(0xfff0d0);
+        keyLight.intensity = 3.0;
+        fillLight.color.set(0x2040a0);
+        fillLight.intensity = 0.4;
+        rimLight.color.set(0x4080ff);
+        rimLight.intensity = 0.6;
+
+        // Enable shadow maps for satellite
+        renderer.shadowMap.enabled = true;
+
+        // Unlock camera for space
+        controls.maxPolarAngle = Math.PI;
+
+        // Show space UI panels
+        document.getElementById('missionPanel').classList.add('visible');
+        document.getElementById('satPanel').classList.add('visible');
+        document.getElementById('teleopPanel').classList.add('visible');
+        document.getElementById('controlsHintSpace').style.display = 'block';
+
+        // Add space-specific poses to the pose bar
+        addSpacePoses();
+
+        // Reset zero-g state
+        zeroG.velocity.set(0, 0, 0);
+        zeroG.angularVelocity.set(0, 0, 0);
+        robotGroup.position.set(0, 1, 0);
+
+        // Start teleop latency simulation
+        teleop.latency = teleop.targetLatency;
+    } else {
+        // Exit space mode
+        scene.background = new THREE.Color(0xe8e8e8);
+        scene.fog = new THREE.Fog(0xe8e8e8, 18, 35);
+
+        if (starField) starField.visible = false;
+        if (earthMesh) { earthMesh.visible = false; earthMesh.atmo.visible = false; }
+        if (orbitalRing) orbitalRing.visible = false;
+        if (satelliteGroup) satelliteGroup.visible = false;
+
+        floor.visible = true;
+        shadowCatcher.visible = true;
+        gridHelper.visible = true;
+
+        ambientLight.color.set(0xf5f0e8);
+        ambientLight.intensity = 0.5;
+        keyLight.color.set(0xfff8f0);
+        keyLight.intensity = 2.0;
+        fillLight.color.set(0xe0e8f0);
+        fillLight.intensity = 0.6;
+        rimLight.color.set(0xffeedd);
+        rimLight.intensity = 0.8;
+
+        // Restore camera polar angle
+        controls.maxPolarAngle = Math.PI / 2.05;
+
+        document.getElementById('missionPanel').classList.remove('visible');
+        document.getElementById('satPanel').classList.remove('visible');
+        document.getElementById('teleopPanel').classList.remove('visible');
+        document.getElementById('controlsHintSpace').style.display = 'none';
+
+        removeSpacePoses();
+        robotGroup.position.set(0, 0, 0);
+        robotGroup.rotation.set(0, 0, 0);
+
+        // Stop mission
+        if (missionActive) {
+            missionActive = false;
+            document.getElementById('startMissionBtn').textContent = '▶ BEGIN MISSION';
+        }
+    }
+});
+
+// ---- SPACE POSES ----
+function addSpacePoses() {
+    const bar = document.querySelector('.pose-bar');
+    const spacer = document.createElement('button');
+    spacer.className = 'pose-btn';
+    spacer.textContent = '·';
+    spacer.style.cursor = 'default';
+    spacer.style.opacity = '0.3';
+    spacer.dataset.pose = 'spacer';
+    spacer.id = 'spaceSpacer';
+
+    const repairBtn = document.createElement('button');
+    repairBtn.className = 'pose-btn';
+    repairBtn.textContent = 'Repair';
+    repairBtn.dataset.pose = 'repair';
+    repairBtn.id = 'repairBtn';
+
+    const dockBtn = document.createElement('button');
+    dockBtn.className = 'pose-btn';
+    dockBtn.textContent = 'Dock';
+    dockBtn.dataset.pose = 'dock';
+    dockBtn.id = 'dockBtn';
+
+    const freefloatBtn = document.createElement('button');
+    freefloatBtn.className = 'pose-btn';
+    freefloatBtn.textContent = 'Freefloat';
+    freefloatBtn.dataset.pose = 'freefloat';
+    freefloatBtn.id = 'freefloatBtn';
+
+    bar.appendChild(spacer);
+    bar.appendChild(repairBtn);
+    bar.appendChild(dockBtn);
+    bar.appendChild(freefloatBtn);
+
+    // Add click handlers
+    [repairBtn, dockBtn, freefloatBtn].forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.pose-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            prevPose = currentPose;
+            currentPose = btn.dataset.pose;
+            poseTransition = 0;
+        });
+    });
+
+    // Add space poses to the poses object
+    poses.repair = (i, t) => ({
+        shoulderY: Math.sin(t * 0.3 + i * 0.7) * 0.2,
+        shoulderZ: 0.8 + Math.sin(t * 0.25 + i) * 0.1,
+        elbowZ: -1.2 + Math.sin(t * 0.3 + i * 0.5) * 0.15,
+        wristZ: 0.9 + Math.sin(t * 0.35 + i * 0.8) * 0.08,
+        forearmZ: 0.7 + Math.sin(t * 0.28 + i * 0.6) * 0.06,
+        eeY: Math.sin(t * 0.4 + i * 0.4) * 0.12,
+    });
+
+    poses.dock = (i, t) => ({
+        shoulderY: Math.sin(t * 0.15 + i * 0.3) * 0.05,
+        shoulderZ: -0.3 + Math.sin(t * 0.1 + i * 0.2) * 0.03,
+        elbowZ: -0.15 + Math.sin(t * 0.12 + i * 0.15) * 0.02,
+        wristZ: -0.1 + Math.sin(t * 0.14 + i * 0.25) * 0.02,
+        forearmZ: -0.05 + Math.sin(t * 0.11 + i * 0.2) * 0.01,
+        eeY: Math.sin(t * 0.16 + i * 0.3) * 0.02,
+    });
+
+    poses.freefloat = (i, t) => ({
+        shoulderY: Math.sin(t * 0.2 + i * 1.5) * 0.3 + Math.sin(t * 0.05) * 0.5,
+        shoulderZ: 0.4 + Math.sin(t * 0.15 + i * 2.0) * 0.4,
+        elbowZ: -0.7 + Math.sin(t * 0.18 + i * 1.8) * 0.5,
+        wristZ: 0.5 + Math.sin(t * 0.22 + i * 1.3) * 0.4,
+        forearmZ: 0.3 + Math.sin(t * 0.2 + i * 1.6) * 0.3,
+        eeY: Math.sin(t * 0.25 + i * 1.1) * 0.35,
+    });
+}
+
+function removeSpacePoses() {
+    ['repair', 'dock', 'freefloat'].forEach(p => delete poses[p]);
+    ['spaceSpacer', 'repairBtn', 'dockBtn', 'freefloatBtn'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    });
+}
+
+// ---- MISSION SYSTEM ----
+document.getElementById('startMissionBtn').addEventListener('click', () => {
+    if (!spaceMode) return;
+    missionActive = !missionActive;
+    const btn = document.getElementById('startMissionBtn');
+
+    if (missionActive) {
+        missionStartTime = performance.now();
+        missionElapsed = 0;
+        missionScore = 0;
+        missionFuel = 100;
+        missionTasksCompleted = 0;
+        btn.textContent = '■ END MISSION';
+        btn.style.borderColor = '#ef4444';
+        btn.style.color = '#ef4444';
+
+        // Reset tasks
+        ['taskSolar', 'taskAntenna', 'taskCircuit', 'taskDebris'].forEach(id => {
+            const el = document.getElementById(id);
+            el.textContent = 'PENDING';
+            el.className = 'sat-task-status pending';
+        });
+
+        // Reset satellite damage
+        if (satelliteSolarL) satelliteSolarL.rotation.z = 0.3;
+        if (satelliteSolarR) satelliteSolarR.rotation.z = -0.3;
+        if (satelliteAntenna) satelliteAntenna.rotation.x = 0.4;
+        if (satellitePanel) satellitePanel.children[3] && (satellitePanel.children[3].position.z = 0.04);
+    } else {
+        btn.textContent = '▶ BEGIN MISSION';
+        btn.style.borderColor = '#4a90d9';
+        btn.style.color = '#8ab4f0';
+    }
+});
+
+function updateMission(dt) {
+    if (!missionActive || !spaceMode) return;
+
+    missionElapsed = (performance.now() - missionStartTime) / 1000;
+    const mins = Math.floor(missionElapsed / 60).toString().padStart(2, '0');
+    const secs = Math.floor(missionElapsed % 60).toString().padStart(2, '0');
+    document.getElementById('missionTime').textContent = `${mins}:${secs}`;
+    document.getElementById('missionScore').textContent = missionScore;
+    document.getElementById('missionFuel').textContent = Math.max(0, missionFuel).toFixed(0) + '%';
+    document.getElementById('missionTasks').textContent = `${missionTasksCompleted}/${totalMissionTasks}`;
+
+    // Fuel consumption
+    missionFuel -= dt * 0.5;
+
+    // Check proximity to satellite for task completion
+    if (satelliteGroup) {
+        const dist = robotGroup.position.distanceTo(satelliteGroup.position);
+        const nearSatellite = dist < 4;
+
+        // Task: Solar Panel (approach from left side)
+        if (nearSatellite && document.getElementById('taskSolar').textContent === 'PENDING') {
+            const armAvg = arms.reduce((sum, a) => sum + Math.abs(a.shoulder.rotation.z), 0) / 8;
+            if (armAvg > 0.5) {
+                completeTask('taskSolar', 'Solar Panel Realignment', 250);
+                if (satelliteSolarL) animateSolarFix();
+            }
+        }
+
+        // Task: Antenna (approach from front)
+        if (nearSatellite && document.getElementById('taskAntenna').textContent === 'PENDING') {
+            const eeTypes = document.querySelectorAll('.ee-item.active');
+            if (eeTypes.length > 0 && eeTypes[0].dataset.ee === 'screwdriver') {
+                completeTask('taskAntenna', 'Antenna Reflector Repair', 300);
+                if (satelliteAntenna) animateAntennaFix();
+            }
+        }
+
+        // Task: Circuit (approach from rear)
+        if (nearSatellite && document.getElementById('taskCircuit').textContent === 'PENDING') {
+            const armAvg = arms.reduce((sum, a) => sum + Math.abs(a.wrist.rotation.z), 0) / 8;
+            if (armAvg > 0.6) {
+                completeTask('taskCircuit', 'Circuit Board Replacement', 350);
+            }
+        }
+
+        // Task: Debris shield (approach from below)
+        if (nearSatellite && document.getElementById('taskDebris').textContent === 'PENDING') {
+            if (missionFuel < 80) {
+                completeTask('taskDebris', 'Debris Shield Patching', 200);
+            }
+        }
+    }
+
+    // Score penalties
+    if (missionFuel <= 0) {
+        missionActive = false;
+        showScorePopup('MISSION FAILED - FUEL DEPLETED', '#ef4444');
+        document.getElementById('startMissionBtn').textContent = '▶ BEGIN MISSION';
+        document.getElementById('startMissionBtn').style.borderColor = '#4a90d9';
+        document.getElementById('startMissionBtn').style.color = '#8ab4f0';
+    }
+
+    if (missionTasksCompleted >= totalMissionTasks) {
+        const timeBonus = Math.max(0, 500 - Math.floor(missionElapsed));
+        const fuelBonus = Math.floor(missionFuel * 2);
+        missionScore += timeBonus + fuelBonus;
+        document.getElementById('missionScore').textContent = missionScore;
+        missionActive = false;
+        showScorePopup(`MISSION COMPLETE! Score: ${missionScore}`, '#4ade80');
+        document.getElementById('startMissionBtn').textContent = '▶ BEGIN MISSION';
+        document.getElementById('startMissionBtn').style.borderColor = '#4a90d9';
+        document.getElementById('startMissionBtn').style.color = '#8ab4f0';
+    }
+}
+
+function completeTask(taskId, taskName, points) {
+    const el = document.getElementById(taskId);
+    if (el.textContent === 'DONE') return;
+    el.textContent = 'DONE';
+    el.className = 'sat-task-status done';
+    missionTasksCompleted++;
+    missionScore += points;
+    showScorePopup(`+${points} ${taskName}`, '#4ade80');
+}
+
+function showScorePopup(text, color) {
+    const popup = document.createElement('div');
+    popup.className = 'score-popup';
+    popup.textContent = text;
+    popup.style.color = color;
+    document.body.appendChild(popup);
+    setTimeout(() => popup.remove(), 1300);
+}
+
+function animateSolarFix() {
+    if (!satelliteSolarL) return;
+    const target = 0;
+    const anim = () => {
+        satelliteSolarL.rotation.z += (target - satelliteSolarL.rotation.z) * 0.03;
+        if (Math.abs(satelliteSolarL.rotation.z - target) > 0.01) requestAnimationFrame(anim);
+    };
+    anim();
+    // Also fix right panel
+    const animR = () => {
+        satelliteSolarR.rotation.z += (0 - satelliteSolarR.rotation.z) * 0.03;
+        if (Math.abs(satelliteSolarR.rotation.z) > 0.01) requestAnimationFrame(animR);
+    };
+    animR();
+}
+
+function animateAntennaFix() {
+    if (!satelliteAntenna) return;
+    const anim = () => {
+        satelliteAntenna.rotation.x += (0 - satelliteAntenna.rotation.x) * 0.03;
+        if (Math.abs(satelliteAntenna.rotation.x) > 0.01) requestAnimationFrame(anim);
+    };
+    anim();
+}
+
+// ---- TELEOPERATION SIMULATION ----
+function updateTeleop(dt) {
+    if (!spaceMode) return;
+
+    // Simulate varying latency
+    teleop.targetLatency = 480 + Math.sin(performance.now() * 0.0003) * 200 + Math.random() * 80;
+    teleop.latency += (teleop.targetLatency - teleop.latency) * 0.01;
+
+    // Bandwidth fluctuation
+    teleop.bandwidth = 38 + Math.sin(performance.now() * 0.0005) * 8 + Math.random() * 4;
+
+    // Connection status
+    teleop.connected = teleop.latency < 1200;
+
+    const dot = document.getElementById('teleopDot');
+    const status = document.getElementById('teleopStatus');
+    if (!teleop.connected) {
+        dot.className = 'teleop-dot disconnected';
+        status.textContent = 'TELEOP: LOST SIGNAL';
+        status.style.color = '#ef4444';
+    } else if (teleop.latency > 800) {
+        dot.className = 'teleop-dot latency';
+        status.textContent = 'TELEOP: HIGH LATENCY';
+        status.style.color = '#f59e0b';
+    } else {
+        dot.className = 'teleop-dot';
+        status.textContent = 'TELEOP: NOMINAL';
+        status.style.color = '#8ab4f0';
+    }
+
+    document.getElementById('teleopLatency').textContent = Math.floor(teleop.latency) + 'ms';
+    document.getElementById('teleopBandwidth').textContent = teleop.bandwidth.toFixed(1) + ' Mbps';
+
+    // Apply latency to robot movement (delayed response)
+    if (teleop.latency > 600) {
+        zeroG.damping = 0.96;
+    } else {
+        zeroG.damping = 0.98;
+    }
+}
 
 // ============================================
 // JOINT ANGLE DISPLAY
@@ -2783,56 +3702,116 @@ function animate() {
         arm.eePivot.rotation.y = ey;
     });
     
-    // Body movement when walking
-    if (currentPose === 'walk') {
-        // Raise robot up on its arms (low enough to reach floor, high enough to clear base)
-        robotGroup.position.y += (0.7 - robotGroup.position.y) * 0.03;
-        
-        let mx = 0, mz = 0;
-        if (keys.w || keys.arrowup || dpadHeld.up) mz -= 1;
-        if (keys.s || keys.arrowdown || dpadHeld.down) mz += 1;
-        if (keys.a || keys.arrowleft || dpadHeld.left) mx -= 1;
-        if (keys.d || keys.arrowright || dpadHeld.right) mx += 1;
-        
-        if (mx !== 0 || mz !== 0) {
-            const len = Math.sqrt(mx * mx + mz * mz);
-            mx /= len;
-            mz /= len;
-            
-            const targetAngle = Math.atan2(mx, mz);
-            let diff = targetAngle - robotGroup.rotation.y;
-            while (diff > Math.PI) diff -= Math.PI * 2;
-            while (diff < -Math.PI) diff += Math.PI * 2;
-            robotGroup.rotation.y += diff * 0.06;
-            
-            const spd = 0.03 * walkSpeed;
-            robotGroup.position.x += mx * spd;
-            robotGroup.position.z += mz * spd;
+    if (spaceMode) {
+        // ---- ZERO-G PHYSICS ----
+        let mx = 0, mz = 0, my = 0;
+        if (keys.w || keys.arrowup) mz -= 1;
+        if (keys.s || keys.arrowdown) mz += 1;
+        if (keys.a || keys.arrowleft) mx -= 1;
+        if (keys.d || keys.arrowright) mx += 1;
+        // Q/E for up/down in zero-g
+        if (keys.q) my += 1;
+        if (keys.e) my -= 1;
+
+        if (mx !== 0 || mz !== 0 || my !== 0) {
+            const len = Math.sqrt(mx * mx + mz * mz + my * my);
+            mx /= len; mz /= len; my /= len;
+            const force = 0.008 * walkSpeed;
+            zeroG.velocity.x += mx * force;
+            zeroG.velocity.y += my * force;
+            zeroG.velocity.z += mz * force;
         }
-        
-        // Body bob — weight shift as arms step
-        const bobPhase = t * walkSpeed * 2;
-        bodyGroup.position.y = 0.02 + (0.5 + 0.5 * Math.sin(bobPhase)) * 0.04;
-        
-        // Camera follows robot
-        controls.target.x += (robotGroup.position.x - controls.target.x) * 0.015;
-        controls.target.z += (robotGroup.position.z - controls.target.z) * 0.015;
+
+        // Apply velocity with damping
+        zeroG.velocity.multiplyScalar(zeroG.damping);
+        robotGroup.position.add(zeroG.velocity);
+
+        // Angular drift (subtle tumble)
+        if (mx !== 0 || mz !== 0) {
+            zeroG.angularVelocity.y += mx * 0.001;
+        }
+        zeroG.angularVelocity.multiplyScalar(zeroG.angularDamping);
+        robotGroup.rotation.y += zeroG.angularVelocity.y;
+        robotGroup.rotation.x += zeroG.angularVelocity.x * 0.1;
+        robotGroup.rotation.z += zeroG.angularVelocity.z * 0.1;
+
+        // Keep robot within bounds
+        const maxDist = 15;
+        if (robotGroup.position.length() > maxDist) {
+            robotGroup.position.multiplyScalar(0.98);
+            zeroG.velocity.multiplyScalar(0.9);
+        }
+
+        // Camera follows robot in zero-g
+        controls.target.lerp(robotGroup.position.clone().add(new THREE.Vector3(0, 0.5, 0)), 0.02);
+
+        // ---- EARTH ROTATION ----
+        if (earthMesh) {
+            earthMesh.rotation.y += 0.0003;
+            if (earthMesh.atmo) earthMesh.atmo.rotation.y = earthMesh.rotation.y;
+        }
+
+        // ---- SATELLITE DRIFT ----
+        if (satelliteGroup) {
+            satelliteGroup.rotation.y += 0.001;
+            satelliteGroup.position.y = 1.5 + Math.sin(t * 0.3) * 0.15;
+        }
+
+        // ---- TELEOPERATION UPDATE ----
+        updateTeleop(dt);
+
+        // ---- MISSION UPDATE ----
+        updateMission(1 / 60);
+
     } else {
-        // Settle back to ground when not walking
-        robotGroup.position.y += (0 - robotGroup.position.y) * 0.02;
-        
-        // Subtle body hover
-        bodyGroup.position.y = 0.02 + Math.sin(t * 0.5) * 0.008;
+        // ---- NORMAL (GRAVITY) MODE ----
+        // Body movement when walking
+        if (currentPose === 'walk') {
+            robotGroup.position.y += (0.7 - robotGroup.position.y) * 0.03;
+            
+            let mx = 0, mz = 0;
+            if (keys.w || keys.arrowup || dpadHeld.up) mz -= 1;
+            if (keys.s || keys.arrowdown || dpadHeld.down) mz += 1;
+            if (keys.a || keys.arrowleft || dpadHeld.left) mx -= 1;
+            if (keys.d || keys.arrowright || dpadHeld.right) mx += 1;
+            
+            if (mx !== 0 || mz !== 0) {
+                const len = Math.sqrt(mx * mx + mz * mz);
+                mx /= len;
+                mz /= len;
+                
+                const targetAngle = Math.atan2(mx, mz);
+                let diff = targetAngle - robotGroup.rotation.y;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                robotGroup.rotation.y += diff * 0.06;
+                
+                const spd = 0.03 * walkSpeed;
+                robotGroup.position.x += mx * spd;
+                robotGroup.position.z += mz * spd;
+            }
+            
+            const bobPhase = t * walkSpeed * 2;
+            bodyGroup.position.y = 0.02 + (0.5 + 0.5 * Math.sin(bobPhase)) * 0.04;
+            
+            controls.target.x += (robotGroup.position.x - controls.target.x) * 0.015;
+            controls.target.z += (robotGroup.position.z - controls.target.z) * 0.015;
+        } else {
+            robotGroup.position.y += (0 - robotGroup.position.y) * 0.02;
+            bodyGroup.position.y = 0.02 + Math.sin(t * 0.5) * 0.008;
+        }
     }
     
     // Update joint angle display
     updateAngles();
     
-    // Gentle camera drift
-    const driftX = Math.sin(t * 0.08) * 0.15;
-    const driftY = Math.cos(t * 0.06) * 0.1;
-    camera.position.x += (6 + driftX - camera.position.x) * 0.002;
-    camera.position.y += (5.5 + driftY - camera.position.y) * 0.002;
+    // Gentle camera drift (only in non-space or when not moving)
+    if (!spaceMode) {
+        const driftX = Math.sin(t * 0.08) * 0.15;
+        const driftY = Math.cos(t * 0.06) * 0.1;
+        camera.position.x += (6 + driftX - camera.position.x) * 0.002;
+        camera.position.y += (5.5 + driftY - camera.position.y) * 0.002;
+    }
     
     // Camera focus animation
     applyFocus();

@@ -3,10 +3,6 @@
 **8-DOF Modular Robotic Arm System — Interactive 3D Showcase**
 
 OCTOARMS is a high-precision, eight-armed robotic system inspired by the flexibility of an octopus. This repository contains an interactive, browser-based 3D showcase built with **Three.js** — explore the full robot, swap tools, cycle poses, browse components, and even take the robot for a walk.
-Add comment
-Commenting on line 5
-Cancel
-Comment
 
 > 🔗 **Live demo:** [https://octoarms.vercel.app](https://octoarms.vercel.app)
 
