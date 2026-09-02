@@ -3015,22 +3015,22 @@ function createStarField() {
     const colors = new Float32Array(count * 3);
     const sizes = new Float32Array(count);
     for (let i = 0; i < count; i++) {
-        const r = 30 + Math.random() * 50;
+        const r = 28 + Math.random() * 55;
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
         positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
         positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
         positions[i * 3 + 2] = r * Math.cos(phi);
-        const brightness = 0.5 + Math.random() * 0.5;
+        const brightness = 0.7 + Math.random() * 0.3;
         colors[i * 3] = brightness;
         colors[i * 3 + 1] = brightness;
         colors[i * 3 + 2] = brightness + Math.random() * 0.2;
-        sizes[i] = 0.08 + Math.random() * 0.15;
+        sizes[i] = 0.12 + Math.random() * 0.25;
     }
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-    const mat = new THREE.PointsMaterial({ size: 0.12, vertexColors: true, transparent: true, opacity: 0.9, sizeAttenuation: true });
+    const mat = new THREE.PointsMaterial({ size: 0.18, vertexColors: true, transparent: true, opacity: 1.0, sizeAttenuation: true });
     starField = new THREE.Points(geo, mat);
     starField.visible = false;
     scene.add(starField);
@@ -3075,15 +3075,15 @@ function createEarth() {
     }
 
     const earthTex = new THREE.CanvasTexture(earthCanvas);
-    const earthMat = new THREE.MeshStandardMaterial({ map: earthTex, emissive: 0x0a3d6b, emissiveIntensity: 0.08 });
+    const earthMat = new THREE.MeshStandardMaterial({ map: earthTex, emissive: 0x0a3d6b, emissiveIntensity: 0.15, roughness: 0.9, metalness: 0.1 });
     earthMesh = new THREE.Mesh(earthGeo, earthMat);
-    earthMesh.position.set(0, -22, 30);
+    earthMesh.position.set(0, -20, 26);
     earthMesh.visible = false;
     scene.add(earthMesh);
 
     // Atmosphere glow
-    const atmoGeo = new THREE.SphereGeometry(8.3, 64, 64);
-    const atmoMat = new THREE.MeshBasicMaterial({ color: 0x4a90d9, transparent: true, opacity: 0.08, side: THREE.BackSide });
+    const atmoGeo = new THREE.SphereGeometry(8.6, 64, 64);
+    const atmoMat = new THREE.MeshBasicMaterial({ color: 0x4a90d9, transparent: true, opacity: 0.15, side: THREE.BackSide });
     const atmo = new THREE.Mesh(atmoGeo, atmoMat);
     atmo.position.copy(earthMesh.position);
     atmo.visible = false;
@@ -3105,16 +3105,23 @@ function createSatellite() {
     satelliteGroup = new THREE.Group();
     satelliteGroup.visible = false;
 
-    // Main body (bus)
+    // Main body (bus) - lighter silver-gold so it reads against dark space
     const busGeo = new THREE.BoxGeometry(1.2, 0.8, 1.0);
-    const busMat = new THREE.MeshPhysicalMaterial({ color: 0xc0c0c5, roughness: 0.3, metalness: 0.8 });
+    const busMat = new THREE.MeshPhysicalMaterial({ color: 0xd8d8de, roughness: 0.3, metalness: 0.85, emissive: 0x222233, emissiveIntensity: 0.12 });
     const bus = new THREE.Mesh(busGeo, busMat);
     bus.castShadow = true;
     satelliteGroup.add(bus);
 
+    // Gold foil body wrap for contrast
+    const goldGeo = new THREE.BoxGeometry(1.25, 0.05, 1.05);
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: 0xffcc44, roughness: 0.4, metalness: 0.7, emissive: 0x443300, emissiveIntensity: 0.3 });
+    const goldBand = new THREE.Mesh(goldGeo, goldMat);
+    goldBand.position.y = 0.32;
+    satelliteGroup.add(goldBand);
+
     // Top panel (thermal blanket)
     const topGeo = new THREE.BoxGeometry(1.1, 0.04, 0.9);
-    const topMat = new THREE.MeshPhysicalMaterial({ color: 0xd4af37, roughness: 0.2, metalness: 0.6, emissive: 0x332200, emissiveIntensity: 0.05 });
+    const topMat = new THREE.MeshPhysicalMaterial({ color: 0xf0b830, roughness: 0.2, metalness: 0.6, emissive: 0x553300, emissiveIntensity: 0.4 });
     const topPlate = new THREE.Mesh(topGeo, topMat);
     topPlate.position.y = 0.42;
     satelliteGroup.add(topPlate);
@@ -3122,28 +3129,28 @@ function createSatellite() {
     // Solar panel LEFT
     satelliteSolarL = new THREE.Group();
     const solarGeo = new THREE.BoxGeometry(2.0, 0.03, 1.2);
-    const solarMat = new THREE.MeshPhysicalMaterial({ color: 0x1a2a5a, roughness: 0.15, metalness: 0.7, emissive: 0x0a1a4a, emissiveIntensity: 0.05 });
+    const solarMat = new THREE.MeshPhysicalMaterial({ color: 0x2040a0, roughness: 0.15, metalness: 0.7, emissive: 0x0a1a4a, emissiveIntensity: 0.15 });
     const solarPanelL = new THREE.Mesh(solarGeo, solarMat);
     solarPanelL.castShadow = true;
     satelliteSolarL.add(solarPanelL);
     // Solar cell grid lines
     for (let i = -4; i <= 4; i++) {
         const lineGeo = new THREE.BoxGeometry(0.005, 0.035, 1.2);
-        const lineMat = new THREE.MeshBasicMaterial({ color: 0x3a4a7a });
+        const lineMat = new THREE.MeshBasicMaterial({ color: 0x6080d0 });
         const line = new THREE.Mesh(lineGeo, lineMat);
         line.position.x = i * 0.22;
         satelliteSolarL.add(line);
     }
     for (let i = -2; i <= 2; i++) {
         const lineGeo = new THREE.BoxGeometry(2.0, 0.035, 0.005);
-        const lineMat = new THREE.MeshBasicMaterial({ color: 0x3a4a7a });
+        const lineMat = new THREE.MeshBasicMaterial({ color: 0x6080d0 });
         const line = new THREE.Mesh(lineGeo, lineMat);
         line.position.z = i * 0.28;
         satelliteSolarL.add(line);
     }
     // Solar arm
     const armGeo = new THREE.CylinderGeometry(0.03, 0.03, 1.0, 8);
-    const armMat = new THREE.MeshPhysicalMaterial({ color: 0x888890, roughness: 0.4, metalness: 0.7 });
+    const armMat = new THREE.MeshPhysicalMaterial({ color: 0xccccd4, roughness: 0.4, metalness: 0.8 });
     const solarArmL = new THREE.Mesh(armGeo, armMat);
     solarArmL.rotation.z = Math.PI / 2;
     solarArmL.position.x = -0.5;
@@ -3160,7 +3167,7 @@ function createSatellite() {
     // Antenna dish
     satelliteAntenna = new THREE.Group();
     const dishGeo = new THREE.SphereGeometry(0.35, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
-    const dishMat = new THREE.MeshPhysicalMaterial({ color: 0xe0e0e5, roughness: 0.15, metalness: 0.9 });
+    const dishMat = new THREE.MeshPhysicalMaterial({ color: 0xf0f0f6, roughness: 0.15, metalness: 0.9 });
     const dish = new THREE.Mesh(dishGeo, dishMat);
     dish.rotation.x = -Math.PI / 2;
     dish.castShadow = true;
@@ -3179,17 +3186,17 @@ function createSatellite() {
     satelliteAntenna.position.set(0, 0.6, 0.3);
     satelliteGroup.add(satelliteAntenna);
 
-    // Service panel (circuit board access)
+    // Service panel (circuit board access) - green phosphor glow
     satellitePanel = new THREE.Group();
     const panelGeo = new THREE.BoxGeometry(0.5, 0.4, 0.05);
-    const panelMat = new THREE.MeshPhysicalMaterial({ color: 0x2a5a2a, roughness: 0.4, metalness: 0.5 });
+    const panelMat = new THREE.MeshPhysicalMaterial({ color: 0x2a7a3a, roughness: 0.4, metalness: 0.5, emissive: 0x0a3a1a, emissiveIntensity: 0.3 });
     const panel = new THREE.Mesh(panelGeo, panelMat);
     satellitePanel.add(panel);
     // Panel detail - chips
     for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 2; j++) {
             const chipGeo = new THREE.BoxGeometry(0.08, 0.06, 0.02);
-            const chipMat = new THREE.MeshPhysicalMaterial({ color: 0x1a1a22, roughness: 0.3, metalness: 0.8 });
+            const chipMat = new THREE.MeshPhysicalMaterial({ color: 0x3a3a44, roughness: 0.3, metalness: 0.8, emissive: 0x112211, emissiveIntensity: 0.2 });
             const chip = new THREE.Mesh(chipGeo, chipMat);
             chip.position.set(-0.12 + i * 0.14, -0.08 + j * 0.16, 0.03);
             satellitePanel.add(chip);
@@ -3197,23 +3204,23 @@ function createSatellite() {
     }
     // Panel cover (can be opened)
     const coverGeo = new THREE.BoxGeometry(0.52, 0.42, 0.02);
-    const coverMat = new THREE.MeshPhysicalMaterial({ color: 0xa0a0a5, roughness: 0.3, metalness: 0.7 });
+    const coverMat = new THREE.MeshPhysicalMaterial({ color: 0xd0d0d6, roughness: 0.3, metalness: 0.7, emissive: 0x222233, emissiveIntensity: 0.15 });
     const cover = new THREE.Mesh(coverGeo, coverMat);
     cover.position.z = 0.04;
     satellitePanel.add(cover);
     satellitePanel.position.set(0.4, 0, -0.52);
     satelliteGroup.add(satellitePanel);
 
-    // Debris shield (whipple shield)
+    // Debris shield (whipple shield) - metallic with impact craters
     satelliteShield = new THREE.Group();
     const shieldGeo = new THREE.BoxGeometry(0.8, 0.6, 0.06);
-    const shieldMat = new THREE.MeshPhysicalMaterial({ color: 0x8888a0, roughness: 0.5, metalness: 0.6 });
+    const shieldMat = new THREE.MeshPhysicalMaterial({ color: 0xb8b8cc, roughness: 0.5, metalness: 0.6, emissive: 0x222233, emissiveIntensity: 0.15 });
     const shield = new THREE.Mesh(shieldGeo, shieldMat);
     satelliteShield.add(shield);
     // Impact marks
     for (let i = 0; i < 3; i++) {
         const markGeo = new THREE.CircleGeometry(0.03 + Math.random() * 0.04, 8);
-        const markMat = new THREE.MeshBasicMaterial({ color: 0x333340 });
+        const markMat = new THREE.MeshBasicMaterial({ color: 0x555566 });
         const mark = new THREE.Mesh(markGeo, markMat);
         mark.position.set(-0.2 + Math.random() * 0.4, -0.15 + Math.random() * 0.3, 0.035);
         satelliteShield.add(mark);
@@ -3221,7 +3228,7 @@ function createSatellite() {
     satelliteShield.position.set(-0.3, -0.2, -0.52);
     satelliteGroup.add(satelliteShield);
 
-    satelliteGroup.position.set(0, 1.5, -3);
+    satelliteGroup.position.set(0, 1.8, 2);
     satelliteGroup.rotation.y = 0.3;
     scene.add(satelliteGroup);
 }
@@ -3235,7 +3242,7 @@ document.getElementById('spaceModeBtn').addEventListener('click', () => {
     if (spaceMode) {
         // Enter space mode
         scene.background = new THREE.Color(0x050810);
-        scene.fog = new THREE.Fog(0x050810, 40, 80);
+        scene.fog = new THREE.Fog(0x050810, 60, 120);
 
         // Show space objects
         if (starField) starField.visible = true;
@@ -3248,15 +3255,22 @@ document.getElementById('spaceModeBtn').addEventListener('click', () => {
         shadowCatcher.visible = false;
         gridHelper.visible = false;
 
-        // Adjust lighting for space
-        ambientLight.color.set(0x1a2040);
-        ambientLight.intensity = 0.3;
+        // Adjust lighting for space - bright sun + strong blue fill to silhouette objects
+        ambientLight.color.set(0x2a3a5a);
+        ambientLight.intensity = 0.6;
         keyLight.color.set(0xfff0d0);
-        keyLight.intensity = 3.0;
-        fillLight.color.set(0x2040a0);
-        fillLight.intensity = 0.4;
-        rimLight.color.set(0x4080ff);
-        rimLight.intensity = 0.6;
+        keyLight.intensity = 4.0;
+        keyLight.position.set(6, 10, 5);
+        fillLight.color.set(0x3050b0);
+        fillLight.intensity = 0.8;
+        fillLight.position.set(-5, 2, -2);
+        rimLight.color.set(0x60a0ff);
+        rimLight.intensity = 1.5;
+        rimLight.position.set(-3, 4, 8);
+        accent1.color.set(0x88ccff);
+        accent1.intensity = 1.2;
+        accent1.position.set(3, 1.5, 3);
+        accent2.intensity = 0.0;
 
         // Enable shadow maps for satellite
         renderer.shadowMap.enabled = true;
@@ -3276,10 +3290,16 @@ document.getElementById('spaceModeBtn').addEventListener('click', () => {
         // Reset zero-g state
         zeroG.velocity.set(0, 0, 0);
         zeroG.angularVelocity.set(0, 0, 0);
-        robotGroup.position.set(0, 1, 0);
+        robotGroup.position.set(0, 1.8, -2.5);
 
         // Start teleop latency simulation
         teleop.latency = teleop.targetLatency;
+
+        // Frame camera to show robot + satellite together
+        controls.target.set(0, 1.7, -0.2);
+        camera.position.set(6, 3.2, 7);
+        controls.minDistance = 3;
+        controls.maxDistance = 25;
     } else {
         // Exit space mode
         scene.background = new THREE.Color(0xe8e8e8);
@@ -3298,10 +3318,16 @@ document.getElementById('spaceModeBtn').addEventListener('click', () => {
         ambientLight.intensity = 0.5;
         keyLight.color.set(0xfff8f0);
         keyLight.intensity = 2.0;
+        keyLight.position.set(6, 10, 5);
         fillLight.color.set(0xe0e8f0);
         fillLight.intensity = 0.6;
+        fillLight.position.set(-5, 6, -3);
         rimLight.color.set(0xffeedd);
         rimLight.intensity = 0.8;
+        rimLight.position.set(-3, 4, 8);
+        accent1.color.set(0xc8956c);
+        accent1.intensity = 0.4;
+        accent2.intensity = 0.3;
 
         // Restore camera polar angle
         controls.maxPolarAngle = Math.PI / 2.05;
@@ -3753,7 +3779,7 @@ function animate() {
         // ---- SATELLITE DRIFT ----
         if (satelliteGroup) {
             satelliteGroup.rotation.y += 0.001;
-            satelliteGroup.position.y = 1.5 + Math.sin(t * 0.3) * 0.15;
+            satelliteGroup.position.y = 1.8 + Math.sin(t * 0.3) * 0.15;
         }
 
         // ---- TELEOPERATION UPDATE ----
